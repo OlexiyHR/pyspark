@@ -1,7 +1,5 @@
+def project_hello():
+    print("This is the project of Krasovskyy, Hromiak and Mykytyshyn.")
 
-def print_hi():
-    print("This is the project of Hromiak, Krasovskyy and Mykytyshyn")
-
-
-if __name__ == '__main__':
-    print_hi()
+if __name__ == "__main__":
+    project_hello()
