@@ -1,6 +1,5 @@
-if __name__ == "__main__":
-    surname_1 = "Mykytyshyn"
-    surname_2 = "Krasovskyy"
-    surname_3 = "Hromyak"
+def project_hello():
+    print("This is the project of Krasovskyy, Hromiak and Mykytyshyn.")
 
-    print(f"This is the project of {surname_1}, {surname_2} and {surname_3}")
+if __name__ == "__main__":
+    project_hello()
