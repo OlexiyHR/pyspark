@@ -20,7 +20,7 @@ def create_spark_session():
 
 
 def display_demo_dataframe():
-    df = basic_test_df()
+    df = basic_test_df(spark_session)
     df.show()
 
 
