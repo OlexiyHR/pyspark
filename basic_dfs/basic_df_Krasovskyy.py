@@ -1,4 +1,4 @@
-from pyspark.sql import functions as F
+from pyspark.sql import functions as f
 import pyspark.sql.types as t
 
 
@@ -55,7 +55,7 @@ def basic_test_df(spark_session):
 
     df = spark_session.createDataFrame(data, schema)
 
-    df = df.withColumn("purchase_date", F.to_date(F.col("purchase_date"), "yyyy-MM-dd"))
-    df = df.withColumn("total_price", F.col("quantity") * F.col("price_per_item"))
+    df = df.withColumn("purchase_date", f.to_date(f.col("purchase_date"), "yyyy-MM-dd"))
+    df = df.withColumn("total_price", f.col("quantity") * f.col("price_per_item"))
 
     return df
