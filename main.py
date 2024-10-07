@@ -1,5 +1,7 @@
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
+from basic_dfs import basic_df_Krasovskyy as basic_df_k
+
 
 def create_spark_session():
     """
@@ -15,5 +17,8 @@ def create_spark_session():
              .getOrCreate())
     return spark
 
+
 if __name__ == "__main__":
     spark_session = create_spark_session()
+    basic_df_k.basic_test_df(spark_session=spark_session).show()
+    spark_session.stop()
