@@ -16,9 +16,9 @@ def read_fare_data_df(spark_session,
         dataframe_path (str): Path to the directory containing CSV blocks.
         header (bool, optional): Signals if the first row is a header. Defaults to True.
         sep (str, optional): Separator for CSV file reader. Defaults to ",".
-        null_value (str, optional): Value to be classified as null. Defaults to None.
         mode (str, optional): Error handling mode ("PERMISSIVE", "DROPMALFORMED", "FAILFAST"). Defaults to "PERMISSIVE".
         multi_line (bool, optional): Support multi-line values in CSV. Defaults to False.
+        null_value (str, optional): Value to be classified as null. Defaults to None.
 
     Returns:
         DataFrame: A Spark DataFrame with columns:
@@ -67,9 +67,9 @@ def read_fare_data_df(spark_session,
     return df
 
 
-def write_fare_data_df(df, write_folder_path, num_files=1, header=True, sep=","):
+def write_fare_data_df_to_csv(df, write_folder_path, num_files=1, header=True, sep=","):
     """
-    Writes passed DataFrame to CSV files.
+    Writes passed fare data DataFrame to CSV files.
 
     Args:
         df (DataFrame): The DataFrame for writing.
