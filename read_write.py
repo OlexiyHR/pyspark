@@ -1,6 +1,7 @@
 from pyspark.sql import types as t
 from pyspark.sql.functions import col
 
+
 def read_fare_data_df(spark_session,
                       dataframe_path,
                       header=True,
