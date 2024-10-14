@@ -85,4 +85,4 @@ def write_fare_data_df(df, write_folder_path, num_files=1, header=True, sep=",")
     if num_files < 1:
         num_files = 1
 
-    df.repartition(num_files).write.csv(write_folder_path, mode='overwrite', header=True, sep=sep)
+    df.repartition(num_files).write.csv(write_folder_path, mode='overwrite', header=header, sep=sep)
