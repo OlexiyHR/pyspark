@@ -1,3 +1,5 @@
+from os import truncate
+
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
 

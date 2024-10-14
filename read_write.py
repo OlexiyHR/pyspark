@@ -1,5 +1,4 @@
 from pyspark.sql import types as t
-from pyspark.sql.functions import col
 
 
 def read_fare_data_df(spark_session,
@@ -10,26 +9,26 @@ def read_fare_data_df(spark_session,
                       multi_line=False,
                       null_value=None):
     """
-    Reads trip fare dataframe from given directory using defined schema for data and additional options.
+    Reads trip fare dataframe from passed directory using defined schema for data and additional options.
 
     Args:
         spark_session (SparkSession): Spark session to perform operations.
-        dataframe_path (str): Path to the directory containing CSV blocks.
+        dataframe_path (str): Path to the directory containing CSV blocks to read.
         header (bool, optional): Signals if the first row is a header. Defaults to True.
         sep (str, optional): Separator for CSV file reader. Defaults to ",".
         mode (str, optional): Error handling mode ("PERMISSIVE", "DROPMALFORMED", "FAILFAST"). Defaults to "PERMISSIVE".
         multi_line (bool, optional): Support multi-line values in CSV. Defaults to False.
-        null_value (str, optional): Value to be classified as null. Defaults to None.
+        null_value (str, optional): Value that will be interpreted as null. Defaults to None.
 
     Returns:
-        DataFrame: A Spark DataFrame with columns:
-            - medallion (str): Taxi unique medallion.
-            - hack_license (str): Driver's license number.
+        DataFrame: Trip fare data Spark DataFrame with following columns:
+            - medallion (str): Unique identifier for taxi (medallion).
+            - hack_license (str): Taxi driver's license number.
             - vendor_id (str): Taxi vendor's id.
-            - pickup_datetime (timestamp): Date and time of the pickup.
+            - pickup_datetime (timestamp): Date and time of the passenger pickup.
             - payment_type (str): Payment type.
             - fare_amount (double): Fare for the trip.
-            - surcharge (double): Additional charges for the trip.
+            - surcharge (double): Additional surcharges during the trip.
             - mta_tax (double): MTA tax.
             - tip_amount (double): Tip given to the driver.
             - tolls_amount (double): Tolls paid during the trip.
@@ -63,21 +62,22 @@ def read_fare_data_df(spark_session,
 
     df = df_reader.csv(dataframe_path)
 
-    df = df.select([col(c).alias(c.strip()) for c in df.columns])
+    for c in df.columns:
+        df = df.withColumnRenamed(c, c.strip())
 
     return df
 
 
 def write_fare_data_df_to_csv(df, write_folder_path, num_files=1, header=True, sep=","):
     """
-    Writes passed fare data DataFrame to CSV files.
+    Writes passed trip fare data DataFrame to CSV file(s).
 
     Args:
-        df (DataFrame): The DataFrame for writing.
+        df (DataFrame): The trip fare data DataFrame for writing.
         write_folder_path (str): Path for writing directory.
         num_files (int, optional): The number of partitions to split the DataFrame into. Defaults to 1.
         header (bool, optional): Specifies whether to write column names at line 1 or not. Defaults to True.
-        sep (str, optional): Separator for CSV files. Defaults to ","
+        sep (str, optional): Separator for CSV files. Defaults to ",".
 
     Notes:
         - If the passed directory does not exist, it will be created automatically.
