@@ -44,7 +44,7 @@ if __name__ == "__main__":
     display_demo_dataframe_mykytyshyn()
     display_demo_dataframe_Hromiak()
 
-    trip_data_df = read_fare_data_df(
+    fare_data_df = read_fare_data_df(
         spark_session=spark_session,
         dataframe_path=TRIP_FARE_READ_DIRECTORY_PATH,
         header=True,
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     )
 
     write_fare_data_df_to_csv(
-        df=trip_data_df,
+        df=fare_data_df,
         write_folder_path=TRIP_FARE_WRITE_DIRECTORY_PATH,
         num_files=WRITE_PARTITION,
         header=True,
