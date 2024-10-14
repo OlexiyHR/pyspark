@@ -59,5 +59,12 @@ if __name__ == "__main__":
     #trip_data_df.filter(" OR ".join([f"{c} IS NULL" for c in trip_data_df.columns])).show(10, truncate=False)
 
     df100 = trip_data_df.limit(100)
+    write_fare_data_df(
+        df=df100,
+        write_folder_path=TRIP_FARE_WRITE_DIRECTORY_PATH,
+        num_files=WRITE_PARTITION,
+        sep=",",
+        header=True
+    )
 
     spark_session.stop()
