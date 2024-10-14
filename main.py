@@ -1,5 +1,3 @@
-from os import truncate
-
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
@@ -60,8 +58,8 @@ if __name__ == "__main__":
         df=trip_data_df,
         write_folder_path=TRIP_FARE_WRITE_DIRECTORY_PATH,
         num_files=WRITE_PARTITION,
-        sep=",",
-        header=True
+        header=True,
+        sep=","
     )
 
     spark_session.stop()
