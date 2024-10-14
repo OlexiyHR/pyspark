@@ -65,3 +65,22 @@ def read_fare_data_df(spark_session,
     df = df.select([col(c).alias(c.strip()) for c in df.columns])
 
     return df
+
+
+def write_fare_data_df(df, write_folder_path, num_files):
+    """
+    Writes passed DataFrame to CSV files.
+
+    Args:
+        df (DataFrame): The DataFrame for writing.
+        write_folder_path (str): Path for writing directory.
+        num_files (int): The number of partitions to split the DataFrame into.
+
+    Notes:
+        - If the passed directory does not exist, it will be created automatically via os.
+        - If num_files argument is passed with value < 1, it will default to 1.
+    """
+    if num_files < 1:
+        num_files = 1
+
+    df.repartition(num_files).write.csv(write_folder_path, mode='overwrite', header=True)

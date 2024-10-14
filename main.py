@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 from basic_dfs import basic_df_Krasovskyy as basic_df_k
 from basic_dfs.basic_df_mykytyshyn import basic_test_df as basic_test_df_myk
 from basic_dfs.basic_df_Hromiak import basic_test_df as basic_test_df_Hromiak
-from read_write import read_fare_data_df
+from read_write import read_fare_data_df, write_fare_data_df
 from settings import TRIP_FARE_READ_DIRECTORY_PATH, TRIP_FARE_WRITE_DIRECTORY_PATH, WRITE_PARTITION
 
 
@@ -55,5 +55,10 @@ if __name__ == "__main__":
 
     trip_data_df.show(10, truncate=False)
     trip_data_df.printSchema()
+
+    #trip_data_df.filter(" OR ".join([f"{c} IS NULL" for c in trip_data_df.columns])).show(10, truncate=False)
+
+    df100 = trip_data_df.limit(100)
+    write_fare_data_df(df100, TRIP_FARE_WRITE_DIRECTORY_PATH, WRITE_PARTITION)
 
     spark_session.stop()
