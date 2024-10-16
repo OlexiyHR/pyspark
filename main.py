@@ -4,8 +4,9 @@ from pyspark.sql import SparkSession
 from basic_dfs import basic_df_Krasovskyy as basic_df_k
 from basic_dfs.basic_df_mykytyshyn import basic_test_df as basic_test_df_myk
 from basic_dfs.basic_df_Hromiak import basic_test_df as basic_test_df_Hromiak
-from read_write import read_fare_data_df, write_fare_data_df_to_csv
-from settings import TRIP_FARE_READ_DIRECTORY_PATH, TRIP_FARE_WRITE_DIRECTORY_PATH, WRITE_PARTITION
+from read_write import read_fare_data_df, write_fare_data_df_to_csv, read_trip_data_df, write_trip_data_df_to_csv
+from settings import TRIP_FARE_READ_DIRECTORY_PATH, TRIP_FARE_WRITE_DIRECTORY_PATH, TRIP_DATA_READ_DIRECTORY_PATH, TRIP_DATA_WRITE_DIRECTORY_PATH, WRITE_PARTITION
+
 
 
 def create_spark_session():
@@ -34,7 +35,7 @@ def display_demo_dataframe_krasovskyy():
 
 def display_demo_dataframe_Hromiak():
     df = basic_test_df_Hromiak(spark_session)
-    df.show()
+
 
 
 if __name__ == "__main__":
@@ -61,5 +62,26 @@ if __name__ == "__main__":
         header=True,
         sep=","
     )
+
+
+    trip_data_df = read_trip_data_df(
+        spark_session=spark_session,
+        dataframe_path=TRIP_DATA_READ_DIRECTORY_PATH,
+        header=True,
+        sep=",",
+        null_value="NULL",
+        mode="FAILFAST",
+        multi_line=True
+    )
+
+    
+    write_trip_data_df_to_csv(
+        df=trip_data_df,
+        write_folder_path=TRIP_DATA_WRITE_DIRECTORY_PATH,
+        num_files=WRITE_PARTITION,
+        header=True,
+        sep=","
+    )
+
 
     spark_session.stop()
