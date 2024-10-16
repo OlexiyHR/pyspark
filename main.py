@@ -8,6 +8,7 @@ from read_write import read_fare_data_df, write_fare_data_df_to_csv, read_trip_d
 from settings import TRIP_FARE_READ_DIRECTORY_PATH, TRIP_FARE_WRITE_DIRECTORY_PATH, TRIP_DATA_READ_DIRECTORY_PATH, TRIP_DATA_WRITE_DIRECTORY_PATH, WRITE_PARTITION
 
 
+
 def create_spark_session():
     """
     Creates and returns Spark session
@@ -36,6 +37,7 @@ def display_demo_dataframe_Hromiak():
     df = basic_test_df_Hromiak(spark_session)
 
 
+
 if __name__ == "__main__":
     spark_session = create_spark_session()
 
@@ -61,6 +63,7 @@ if __name__ == "__main__":
         sep=","
     )
 
+
     trip_data_df = read_trip_data_df(
         spark_session=spark_session,
         dataframe_path=TRIP_DATA_READ_DIRECTORY_PATH,
@@ -71,6 +74,7 @@ if __name__ == "__main__":
         multi_line=True
     )
 
+    
     write_trip_data_df_to_csv(
         df=trip_data_df,
         write_folder_path=TRIP_DATA_WRITE_DIRECTORY_PATH,
@@ -78,5 +82,6 @@ if __name__ == "__main__":
         header=True,
         sep=","
     )
+
 
     spark_session.stop()
