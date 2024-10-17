@@ -3,6 +3,8 @@ from pyspark.sql import SparkSession
 
 from basic_dfs import basic_df_Krasovskyy as basic_df_k
 from basic_dfs.basic_df_mykytyshyn import basic_test_df as basic_test_df_myk
+from settings import TRIP_FARE_READ_DIRECTORY_PATH
+from read_write import read_trip_data_df
 
 
 def create_spark_session():
@@ -34,5 +36,7 @@ if __name__ == "__main__":
 
     display_demo_dataframe_krasovskyy()
     display_demo_dataframe_mykytyshyn()
+
+    trip_data_df = read_trip_data_df(spark_session, TRIP_FARE_READ_DIRECTORY_PATH)
 
     spark_session.stop()
