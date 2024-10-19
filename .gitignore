@@ -385,3 +385,5 @@ bundles/
 vendor/pkg/
 pyenv
 Vagrantfile
+
+settings.py
