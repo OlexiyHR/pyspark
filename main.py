@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 from basic_dfs import basic_df_Krasovskyy as basic_df_k
 from basic_dfs.basic_df_mykytyshyn import basic_test_df as basic_test_df_myk
 from basic_dfs.basic_df_Hromiak import basic_test_df as basic_test_df_Hromiak
-from fare_data_postprocessing import replace_unknown_values_with_null, drop_columns_with_nulls
+from fare_data_postprocessing import replace_unknown_values_with_null
 from read_write import read_fare_data_df, write_fare_data_df_to_csv, read_trip_data_df, write_trip_data_df_to_csv
 from settings import TRIP_FARE_READ_DIRECTORY_PATH, TRIP_FARE_WRITE_DIRECTORY_PATH, TRIP_DATA_READ_DIRECTORY_PATH, TRIP_DATA_WRITE_DIRECTORY_PATH, WRITE_PARTITION
 
@@ -61,8 +61,6 @@ if __name__ == "__main__":
         unknown_value="UNK"
     )
 
-    fare_data_df = drop_columns_with_nulls(fare_data_df, threshold=0.7)
-
     write_fare_data_df_to_csv(
         df=fare_data_df,
         write_folder_path=TRIP_FARE_WRITE_DIRECTORY_PATH,
@@ -83,13 +81,13 @@ if __name__ == "__main__":
     )
 
 
-    """write_trip_data_df_to_csv(
+    write_trip_data_df_to_csv(
         df=trip_data_df,
         write_folder_path=TRIP_DATA_WRITE_DIRECTORY_PATH,
         num_files=WRITE_PARTITION,
         header=True,
         sep=","
-    )"""
+    )
 
 
     spark_session.stop()
