@@ -20,3 +20,29 @@ def replace_unknown_values_with_null(df, column_name, unknown_value="UNK"):
         column_name,
         f.when(f.col(column_name) == unknown_value, None).otherwise(f.col(column_name))
     )
+
+def drop_columns_with_nulls(df, threshold):
+    """
+    Drops columns in dataframe in which null values amount exceeds given threshold.
+
+    Args:
+    df (DataFrame): Spark DataFrame to be processed.
+    threshold (float): Threshold for the number of null values, exceeding which
+                       results in the column being deleted. Changes from 0.0 to 1.0.
+
+    """
+    total_rows = df.count()
+    columns_to_drop = []
+
+    for col in df.columns:
+        null_count = df.filter(df[col].isNull()).count()
+        null_part = null_count / total_rows
+
+        # print(f"Column '{col}' has {null_part * 100:.2f}% null values.")
+
+        if null_part > threshold:
+            columns_to_drop.append(col)
+
+    df_cleaned = df.drop(*columns_to_drop)
+
+    return df_cleaned
