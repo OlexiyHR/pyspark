@@ -1,4 +1,4 @@
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, DataFrame
 import pyspark.sql.types as t
 
 
@@ -31,3 +31,11 @@ def read_trip_data_df(
             .option("multiLine", False)
             .schema(trip_data_schema)
             .csv(dataframe_path))
+
+
+def write_trip_data_df(
+        spark_session: SparkSession,
+        df: DataFrame,
+        write_path: str
+):
+    pass
