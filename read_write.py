@@ -152,6 +152,17 @@ def read_trip_data_df(spark_session,
             - pickup_latitude (double): Latitude of the pickup location.
             - dropoff_longitude (double): Longitude of the dropoff location.
             - dropoff_latitude (double): Latitude of the dropoff location.
+
+    Examples:
+        >>> trip_data_df = read_trip_data_df(
+        ...     spark_session=spark_session,
+        ...     dataframe_path="your/read/path",
+        ...     header=True,
+        ...     sep=",",
+        ...     null_value="NULL",
+        ...     mode="FAILFAST",
+        ...     multi_line=True
+        ... )
     """
     trip_data_schema = t.StructType([
         t.StructField("medallion", t.StringType(), nullable=False),
@@ -201,6 +212,15 @@ def write_trip_data_df_to_csv(df, write_folder_path, num_files=1, header=True, s
     Notes:
         - If the passed directory does not exist, it will be created automatically.
         - If num_files argument is passed with value < 1, it will default to 1.
+
+    Examples:
+        >>> write_trip_data_df_to_csv(
+        ...     df=df,
+        ...     write_folder_path="your/write/path",
+        ...     num_files=10,
+        ...     header=True,
+        ...     sep=","
+        ... )
     """
     if num_files < 1:
         num_files = 1
