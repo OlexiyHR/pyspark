@@ -34,8 +34,16 @@ def read_trip_data_df(
 
 
 def write_trip_data_df(
-        spark_session: SparkSession,
         df: DataFrame,
-        write_path: str
+        write_path: str,
+        num_files: int = 1,
+        header: bool = True,
+        sep: str = ","
 ):
-    pass
+    if num_files < 1:
+        num_files = 1
+
+    (df
+     .repartition(num_files)
+     .write
+     .csv(write_path, mode='overwrite', header=header, sep=sep))

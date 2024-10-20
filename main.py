@@ -38,6 +38,6 @@ if __name__ == "__main__":
     # display_demo_dataframe_mykytyshyn()
 
     trip_data_df = read_trip_data_df(spark_session, TRIP_FARE_READ_DIRECTORY_PATH)
-    write_trip_data_df(spark_session, trip_data_df, TRIP_FARE_WRITE_DIRECTORY_PATH)
+    write_trip_data_df(trip_data_df, TRIP_FARE_WRITE_DIRECTORY_PATH, num_files=5)
 
     spark_session.stop()
