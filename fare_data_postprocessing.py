@@ -11,10 +11,10 @@ def replace_unknown_values_with_null(df, column_name, unknown_value="UNK"):
         unknown_value (str, optional): Value to be recognized as null. Defaults to 'UNK'.
 
     Returns:
-        DataFrame: New DataFrame where passed value was transformed to null in given column.
+        DataFrame: New Spark DataFrame where passed value was transformed to null in given column.
 
     Example:
-        df = replace_unknown_values_with_null(fare_data_df, "payment_type", "UNK")
+        fare_data_df = replace_unknown_values_with_null(fare_data_df, "payment_type", "UNK")
     """
     return df.withColumn(
         column_name,
@@ -30,6 +30,11 @@ def drop_columns_with_nulls(df, threshold):
     threshold (float): Threshold for the number of null values, exceeding which
                        results in the column being deleted. Changes from 0.0 to 1.0.
 
+    Returns:
+        DataFrame: New Spark DataFrame where columns, that do not satisfy threshold, were dropped.
+
+    Example:
+        fare_data_df = drop_columns_with_nulls(fare_data_df, threshold=0.7)
     """
     total_rows = df.count()
     columns_to_drop = []
