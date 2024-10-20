@@ -3,18 +3,6 @@ Module for postprocessing trip fare data after reading it in PySpark DataFrame.
 
 This module contains DataFrame postprocessing functions for transforming unknown values to nulls
 and dropping columns with excessive number of empty values.
-
-Functions
----------
-    replace_unknown_values_with_null: Transforms specified value to null in specified column of trip fare DataFrame.
-
-Examples
---------
-    fare_data_df = replace_unknown_values_with_null(fare_data_df, "payment_type", "UNK")
-
-Authors
--------
-    Andrii Krasovskyy
 """
 
 
@@ -33,8 +21,12 @@ def replace_unknown_values_with_null(df, column_name, unknown_value="UNK"):
     Returns:
         DataFrame: New Spark DataFrame where passed value was transformed to null in given column.
 
-    Example:
-        fare_data_df = replace_unknown_values_with_null(fare_data_df, "payment_type", "UNK")
+    Examples:
+        >>> fare_data_df = replace_unknown_values_with_null(
+        ...     df=fare_data_df,
+        ...     column_name="payment_type",
+        ...     unknown_value= "UNK"
+        ... )
     """
     return df.withColumn(
         column_name,

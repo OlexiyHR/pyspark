@@ -1,3 +1,11 @@
+"""
+Module for reading and writing fare and trip data DataFrames.
+
+This module contains read_fare_data_df(), write_fare_data_df_to_csv() functions for r/w fare data and
+read_trip_data_df(), write_trip_data_df_to_csv() functions for r/w trip data.
+"""
+
+
 from pyspark.sql import types as t
 
 
@@ -33,6 +41,17 @@ def read_fare_data_df(spark_session,
             - tip_amount (double): Tip given to the driver.
             - tolls_amount (double): Tolls paid during the trip.
             - total_amount (double): Total amount charged for the trip.
+
+    Examples:
+        >>> fare_data_df = read_fare_data_df(
+        ...     spark_session=spark_session,
+        ...     dataframe_path="your/read/path",
+        ...     header=True,
+        ...     sep=",",
+        ...     null_value="NULL",
+        ...     mode="FAILFAST",
+        ...     multi_line=True
+        ... )
     """
     trip_fare_schema = t.StructType([
         t.StructField("medallion", t.StringType(), nullable=False),
@@ -72,6 +91,10 @@ def write_fare_data_df_to_csv(df, write_folder_path, num_files=1, header=True, s
     """
     Writes passed trip fare data DataFrame to CSV file(s).
 
+    Notes:
+        - If the passed directory does not exist, it will be created automatically.
+        - If num_files argument is passed with value < 1, it will default to 1.
+
     Args:
         df (DataFrame): The trip fare data DataFrame for writing.
         write_folder_path (str): Path for writing directory.
@@ -79,9 +102,14 @@ def write_fare_data_df_to_csv(df, write_folder_path, num_files=1, header=True, s
         header (bool, optional): Specifies whether to write column names at line 1 or not. Defaults to True.
         sep (str, optional): Separator for CSV files. Defaults to ",".
 
-    Notes:
-        - If the passed directory does not exist, it will be created automatically.
-        - If num_files argument is passed with value < 1, it will default to 1.
+    Examples:
+        >>> write_fare_data_df_to_csv(
+        ...     df=df,
+        ...     write_folder_path="your/write/path",
+        ...     num_files=10,
+        ...     header=True,
+        ...     sep=","
+        ... )
     """
     if num_files < 1:
         num_files = 1
