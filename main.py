@@ -70,6 +70,10 @@ if __name__ == "__main__":
 
     fare_data_df = fare_proc.filter_invalid_mta_tax(fare_data_df)
 
+    total_fare_num_columns = [c.fare_amount, c.total_amount]
+    for column in [c.fare_amount, c.total_amount]:
+        fare_data_df = fare_proc.remove_outliers_iqr_in_col(df=fare_data_df, column=column, multiplier=10)
+
     write_fare_data_df_to_csv(
         df=fare_data_df,
         write_folder_path=s.TRIP_FARE_WRITE_DIRECTORY_PATH,

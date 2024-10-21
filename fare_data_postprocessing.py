@@ -93,3 +93,34 @@ def filter_invalid_mta_tax(df):
         >>> fare_data_df = filter_invalid_mta_tax(fare_data_df)
     """
     return df.filter((f.col(c.mta_tax) == 0.0) | (f.col(c.mta_tax) == 0.5))
+
+
+def remove_outliers_iqr_in_col(df, column, multiplier=2.22):
+    """
+    Remove rows with outliers based on a specified column of fare data DataFrame using the IQR method.
+
+    Args:
+        df (DataFrame): DataFrame to clean.
+        column (str): Name of the column to filter.
+        multiplier (float, optional): Multiplier for the IQR to calculate the outlier bounds. Defaults to 2.22.
+
+    Returns:
+        DataFrame: New cleaned DataFrame without outliers.
+
+    Examples:
+        >>> fare_data_df = remove_outliers_iqr_in_col(
+        ...     df=fare_data_df,
+        ...     column="fare_amount",
+        ...     multiplier=2.22
+        ... )
+    """
+    q1 = df.approxQuantile(column, [0.25], 0.01)[0]
+    q3 = df.approxQuantile(column, [0.75], 0.01)[0]
+    iqr = q3 - q1
+
+    lower_bound = q1 - multiplier * iqr
+    upper_bound = q3 + multiplier * iqr
+
+    df = df.filter((f.col(column) >= lower_bound) & (f.col(column) <= upper_bound))
+
+    return df
