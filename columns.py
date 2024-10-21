@@ -38,31 +38,31 @@ total_amount = "total_amount"
 """str: The total amount charged for the trip."""
 
 rate_code = "rate_code"
-"""int: Rate code for the trip."""
+"""str: Rate code for the trip."""
 
 store_and_fwd_flag = "store_and_fwd_flag"
-"""bool: Whether the trip data was stored before forwarding."""
+"""str: Whether the trip data was stored before forwarding."""
 
 dropoff_datetime = "dropoff_datetime"
-"""timestamp: Date and time of the passenger dropoff."""
+"""str: Date and time of the passenger dropoff."""
 
 passenger_count = "passenger_count"
-"""int: Number of passengers during the trip."""
+"""str: Number of passengers during the trip."""
 
 trip_time_in_secs = "trip_time_in_secs"
-"""int: Duration of the trip in seconds."""
+"""str: Duration of the trip in seconds."""
 
 trip_distance = "trip_distance"
-"""double: Distance traveled during the trip."""
+"""str: Distance traveled during the trip."""
 
 pickup_longitude = "pickup_longitude"
-"""double: Longitude of the pickup location."""
+"""str: Longitude of the pickup location."""
 
 pickup_latitude = "pickup_latitude"
-"""double: Latitude of the pickup location."""
+"""str: Latitude of the pickup location."""
 
 dropoff_longitude = "dropoff_longitude"
-"""double: Longitude of the dropoff location."""
+"""str: Longitude of the dropoff location."""
 
 dropoff_latitude = "dropoff_latitude"
-"""double: Latitude of the dropoff location."""
+"""str: Latitude of the dropoff location."""
