@@ -9,6 +9,7 @@ deleting invalid MTA tax, fare_amount and total_amount values, deleting negative
 from pyspark.sql import functions as f
 import columns as c
 
+
 def replace_unknown_values_with_null(df, column_name, unknown_value="UNK"):
     """
     Transform specified value to null in specified column of trip fare DataFrame.
