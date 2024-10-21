@@ -4,11 +4,12 @@ from pyspark.sql import SparkSession
 from basic_dfs import basic_df_Krasovskyy as basic_df_k
 from basic_dfs.basic_df_mykytyshyn import basic_test_df as basic_test_df_myk
 from basic_dfs.basic_df_Hromiak import basic_test_df as basic_test_df_Hromiak
-from fare_data_postprocessing import replace_unknown_values_with_null
 from trip_data_postprocessing import transform_store_and_fwd_flag_to_bool, remove_invalid_rows
 from read_write import read_fare_data_df, write_fare_data_df_to_csv, read_trip_data_df, write_trip_data_df_to_csv
+import fare_data_postprocessing as fare_proc
 import settings as s
 import columns as c
+
 
 def create_spark_session():
     """
@@ -37,13 +38,13 @@ def display_demo_dataframe_Hromiak():
     df = basic_test_df_Hromiak(spark_session)
 
 
-
 if __name__ == "__main__":
     spark_session = create_spark_session()
 
     display_demo_dataframe_krasovskyy()
     display_demo_dataframe_mykytyshyn()
     display_demo_dataframe_Hromiak()
+
 
     fare_data_df = read_fare_data_df(
         spark_session=spark_session,
@@ -55,11 +56,23 @@ if __name__ == "__main__":
         multi_line=True
     )
 
-    fare_data_df = replace_unknown_values_with_null(
+    fare_data_df = fare_proc.replace_unknown_values_with_null(
         df=fare_data_df,
         column_name=c.payment_type,
         unknown_value="UNK"
     )
+
+    fare_num_columns = [c.fare_amount, c.surcharge, c.mta_tax, c.tip_amount, c.tolls_amount, c.total_amount]
+    for column in fare_num_columns:
+        fare_data_df = fare_proc.filter_negative_values(df=fare_data_df, column=column)
+
+    fare_data_df = fare_proc.filter_zero_fare_rows(fare_data_df)
+
+    fare_data_df = fare_proc.filter_invalid_mta_tax(fare_data_df)
+
+    total_fare_num_columns = [c.fare_amount, c.total_amount]
+    for column in [c.fare_amount, c.total_amount]:
+        fare_data_df = fare_proc.remove_outliers_iqr_in_col(df=fare_data_df, column=column, multiplier=10)
 
     write_fare_data_df_to_csv(
         df=fare_data_df,
@@ -68,7 +81,6 @@ if __name__ == "__main__":
         header=True,
         sep=","
     )
-
 
     trip_data_df = read_trip_data_df(
         spark_session=spark_session,
@@ -80,7 +92,9 @@ if __name__ == "__main__":
         multi_line=True
     )
 
+
     trip_data_df = transform_store_and_fwd_flag_to_bool(trip_data_df)
+    
     trip_data_df = remove_invalid_rows(trip_data_df)
 
 
@@ -92,5 +106,5 @@ if __name__ == "__main__":
         sep=","
     )
 
-
+    
     spark_session.stop()

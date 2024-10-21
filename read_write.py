@@ -42,6 +42,17 @@ def read_fare_data_df(spark_session,
             - tip_amount (double): Tip given to the driver.
             - tolls_amount (double): Tolls paid during the trip.
             - total_amount (double): Total amount charged for the trip.
+
+    Examples:
+        >>> fare_data_df = read_fare_data_df(
+        ...     spark_session=spark_session,
+        ...     dataframe_path="your/read/path",
+        ...     header=True,
+        ...     sep=",",
+        ...     null_value="NULL",
+        ...     mode="FAILFAST",
+        ...     multi_line=True
+        ... )
     """
     trip_fare_schema = t.StructType([
         t.StructField("medallion", t.StringType(), nullable=False),
@@ -92,6 +103,14 @@ def write_fare_data_df_to_csv(df, write_folder_path, num_files=1, header=True, s
         header (bool, optional): Specifies whether to write column names at line 1 or not. Defaults to True.
         sep (str, optional): Separator for CSV files. Defaults to ",".
 
+    Examples:
+        >>> write_fare_data_df_to_csv(
+        ...     df=df,
+        ...     write_folder_path="your/write/path",
+        ...     num_files=10,
+        ...     header=True,
+        ...     sep=","
+        ... )
     """
     if num_files < 1:
         num_files = 1
@@ -138,6 +157,19 @@ def read_trip_data_df(spark_session,
             - pickup_latitude (double): Latitude of the pickup location.
             - dropoff_longitude (double): Longitude of the dropoff location. Contains null values.
             - dropoff_latitude (double): Latitude of the dropoff location. Contains null values.
+            - dropoff_longitude (double): Longitude of the dropoff location.
+            - dropoff_latitude (double): Latitude of the dropoff location.
+
+    Examples:
+        >>> trip_data_df = read_trip_data_df(
+        ...     spark_session=spark_session,
+        ...     dataframe_path="your/read/path",
+        ...     header=True,
+        ...     sep=",",
+        ...     null_value="NULL",
+        ...     mode="FAILFAST",
+        ...     multi_line=True
+        ... )
     """
     trip_data_schema = t.StructType([
         t.StructField("medallion", t.StringType(), nullable=False),
@@ -189,6 +221,15 @@ def write_trip_data_df_to_csv(df, write_folder_path, num_files=1, header=True, s
     Notes:
         - If the passed directory does not exist, it will be created automatically.
         - If num_files argument is passed with value < 1, it will default to 1.
+
+    Examples:
+        >>> write_trip_data_df_to_csv(
+        ...     df=df,
+        ...     write_folder_path="your/write/path",
+        ...     num_files=10,
+        ...     header=True,
+        ...     sep=","
+        ... )
     """
     if num_files < 1:
         num_files = 1
