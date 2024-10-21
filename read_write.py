@@ -1,4 +1,13 @@
+"""
+Module for reading and writing fare and trip data DataFrames.
+
+This module contains read_fare_data_df(), write_fare_data_df_to_csv() functions for r/w fare data and
+read_trip_data_df(), write_trip_data_df_to_csv() functions for r/w trip data.
+"""
+
+
 from pyspark.sql import types as t
+from pyspark.sql import functions as f
 
 
 def read_fare_data_df(spark_session,
@@ -72,6 +81,10 @@ def write_fare_data_df_to_csv(df, write_folder_path, num_files=1, header=True, s
     """
     Writes passed trip fare data DataFrame to CSV file(s).
 
+    Notes:
+        - If the passed directory does not exist, it will be created automatically.
+        - If num_files argument is passed with value < 1, it will default to 1.
+
     Args:
         df (DataFrame): The trip fare data DataFrame for writing.
         write_folder_path (str): Path for writing directory.
@@ -79,9 +92,6 @@ def write_fare_data_df_to_csv(df, write_folder_path, num_files=1, header=True, s
         header (bool, optional): Specifies whether to write column names at line 1 or not. Defaults to True.
         sep (str, optional): Separator for CSV files. Defaults to ",".
 
-    Notes:
-        - If the passed directory does not exist, it will be created automatically.
-        - If num_files argument is passed with value < 1, it will default to 1.
     """
     if num_files < 1:
         num_files = 1
@@ -91,13 +101,17 @@ def write_fare_data_df_to_csv(df, write_folder_path, num_files=1, header=True, s
 
 def read_trip_data_df(spark_session,
                       dataframe_path,
-                      header=True,
+                      header=False,
                       sep=",",
                       mode="PERMISSIVE",
                       multi_line=False,
                       null_value=None):
     """
     Reads trip data dataframe from passed directory using defined schema for data and additional options.
+    Problem:
+    - Files in the directory have inconsistent headers:
+      * In 1-2 files, the headers do not contain spaces between words.
+      * In 3-12 files, the headers contain spaces between words in the column names.
 
     Args:
         spark_session (SparkSession): Spark session to perform operations.
@@ -114,7 +128,7 @@ def read_trip_data_df(spark_session,
             - hack_license (str): Taxi driver's license number.
             - vendor_id (str): Taxi vendor's ID.
             - rate_code (int): Rate code for the trip.
-            - store_and_fwd_flag (str): Whether the trip data was stored before forwarding.
+            - store_and_fwd_flag (str): Whether the trip data was stored before forwarding. Should be bool type and contains null values.
             - pickup_datetime (timestamp): Date and time of the passenger pickup.
             - dropoff_datetime (timestamp): Date and time of the passenger dropoff.
             - passenger_count (int): Number of passengers during the trip.
@@ -122,15 +136,15 @@ def read_trip_data_df(spark_session,
             - trip_distance (double): Distance traveled during the trip.
             - pickup_longitude (double): Longitude of the pickup location.
             - pickup_latitude (double): Latitude of the pickup location.
-            - dropoff_longitude (double): Longitude of the dropoff location.
-            - dropoff_latitude (double): Latitude of the dropoff location.
+            - dropoff_longitude (double): Longitude of the dropoff location. Contains null values.
+            - dropoff_latitude (double): Latitude of the dropoff location. Contains null values.
     """
     trip_data_schema = t.StructType([
         t.StructField("medallion", t.StringType(), nullable=False),
         t.StructField("hack_license", t.StringType(), nullable=False),
         t.StructField("vendor_id", t.StringType(), nullable=False),
         t.StructField("rate_code", t.IntegerType(), nullable=False),
-        t.StructField("store_and_fwd_flag", t.StringType(), nullable=False),
+        t.StructField("store_and_fwd_flag", t.StringType(), nullable=True),
         t.StructField("pickup_datetime", t.TimestampType(), nullable=False),
         t.StructField("dropoff_datetime", t.TimestampType(), nullable=False),
         t.StructField("passenger_count", t.IntegerType(), nullable=False),
@@ -138,8 +152,8 @@ def read_trip_data_df(spark_session,
         t.StructField("trip_distance", t.DoubleType(), nullable=False),
         t.StructField("pickup_longitude", t.DoubleType(), nullable=False),
         t.StructField("pickup_latitude", t.DoubleType(), nullable=False),
-        t.StructField("dropoff_longitude", t.DoubleType(), nullable=False),
-        t.StructField("dropoff_latitude", t.DoubleType(), nullable=False)
+        t.StructField("dropoff_longitude", t.DoubleType(), nullable=True),
+        t.StructField("dropoff_latitude", t.DoubleType(), nullable=True)
     ])
 
     df_reader = (
@@ -156,8 +170,7 @@ def read_trip_data_df(spark_session,
 
     df = df_reader.csv(dataframe_path)
 
-    # Trim column names to handle inconsistent spaces after commas
-    df = df.toDF(*[col.strip() for col in df.columns])
+    df = df.filter(f.col(df.columns[0]) != "medallion")
 
     return df
 
