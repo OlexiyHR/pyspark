@@ -28,6 +28,7 @@ def create_spark_session():
 
 def display_demo_dataframe_mykytyshyn():
     df = basic_test_df_myk(spark_session)
+    df.show()
 
 
 def display_demo_dataframe_krasovskyy():
@@ -36,6 +37,7 @@ def display_demo_dataframe_krasovskyy():
 
 def display_demo_dataframe_Hromiak():
     df = basic_test_df_Hromiak(spark_session)
+    df.show()
 
 
 if __name__ == "__main__":
