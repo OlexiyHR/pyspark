@@ -4,6 +4,7 @@ from pyspark.sql import SparkSession
 from basic_dfs import basic_df_Krasovskyy as basic_df_k
 from basic_dfs.basic_df_mykytyshyn import basic_test_df as basic_test_df_myk
 from basic_dfs.basic_df_Hromiak import basic_test_df as basic_test_df_Hromiak
+from trip_data_postprocessing import transform_store_and_fwd_flag_to_bool, remove_invalid_rows
 from read_write import read_fare_data_df, write_fare_data_df_to_csv, read_trip_data_df, write_trip_data_df_to_csv
 import fare_data_postprocessing as fare_proc
 import settings as s
@@ -27,7 +28,6 @@ def create_spark_session():
 
 def display_demo_dataframe_mykytyshyn():
     df = basic_test_df_myk(spark_session)
-    df.show()
 
 
 def display_demo_dataframe_krasovskyy():
@@ -36,7 +36,6 @@ def display_demo_dataframe_krasovskyy():
 
 def display_demo_dataframe_Hromiak():
     df = basic_test_df_Hromiak(spark_session)
-    df.show()
 
 
 if __name__ == "__main__":
@@ -45,6 +44,7 @@ if __name__ == "__main__":
     display_demo_dataframe_krasovskyy()
     display_demo_dataframe_mykytyshyn()
     display_demo_dataframe_Hromiak()
+
 
     fare_data_df = read_fare_data_df(
         spark_session=spark_session,
@@ -85,12 +85,18 @@ if __name__ == "__main__":
     trip_data_df = read_trip_data_df(
         spark_session=spark_session,
         dataframe_path=s.TRIP_DATA_READ_DIRECTORY_PATH,
-        header=True,
+        header=False,
         sep=",",
         null_value="NULL",
         mode="FAILFAST",
         multi_line=True
     )
+
+
+    trip_data_df = transform_store_and_fwd_flag_to_bool(trip_data_df)
+    
+    trip_data_df = remove_invalid_rows(trip_data_df)
+
 
     write_trip_data_df_to_csv(
         df=trip_data_df,
@@ -100,4 +106,5 @@ if __name__ == "__main__":
         sep=","
     )
 
+    
     spark_session.stop()

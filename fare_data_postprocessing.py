@@ -25,7 +25,7 @@ def replace_unknown_values_with_null(df, column_name, unknown_value="UNK"):
     Examples:
         >>> fare_data_df = replace_unknown_values_with_null(
         ...     df=fare_data_df,
-        ...     column_name="payment_type",
+        ...     column_name=c.payment_type,
         ...     unknown_value= "UNK"
         ... )
     """

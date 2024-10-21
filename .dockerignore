@@ -1,2 +1,11 @@
 data/
 venv/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.log
+*.env
+*.ini
+*.cfg
+
