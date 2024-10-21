@@ -41,27 +41,27 @@ def display_demo_dataframe_Hromiak():
 if __name__ == "__main__":
     spark_session = create_spark_session()
 
-    display_demo_dataframe_krasovskyy()
-    display_demo_dataframe_mykytyshyn()
-    display_demo_dataframe_Hromiak()
-
-    fare_data_df = read_fare_data_df(
-        spark_session=spark_session,
-        dataframe_path=TRIP_FARE_READ_DIRECTORY_PATH,
-        header=True,
-        sep=",",
-        null_value="NULL",
-        mode="FAILFAST",
-        multi_line=True
-    )
-
-    write_fare_data_df_to_csv(
-        df=fare_data_df,
-        write_folder_path=TRIP_FARE_WRITE_DIRECTORY_PATH,
-        num_files=WRITE_PARTITION,
-        header=True,
-        sep=","
-    )
+    # display_demo_dataframe_krasovskyy()
+    # display_demo_dataframe_mykytyshyn()
+    # display_demo_dataframe_Hromiak()
+    #
+    # fare_data_df = read_fare_data_df(
+    #     spark_session=spark_session,
+    #     dataframe_path=TRIP_FARE_READ_DIRECTORY_PATH,
+    #     header=True,
+    #     sep=",",
+    #     null_value="NULL",
+    #     mode="FAILFAST",
+    #     multi_line=True
+    # )
+    #
+    # write_fare_data_df_to_csv(
+    #     df=fare_data_df,
+    #     write_folder_path=TRIP_FARE_WRITE_DIRECTORY_PATH,
+    #     num_files=WRITE_PARTITION,
+    #     header=True,
+    #     sep=","
+    # )
 
 
     trip_data_df = read_trip_data_df(
