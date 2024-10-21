@@ -195,6 +195,9 @@ def read_trip_data_df(spark_session,
 
     df = df_reader.csv(dataframe_path)
 
+    # Trim column names to handle inconsistent spaces after commas
+    df = df.toDF(*[col.strip() for col in df.columns])
+
     return df
 
 
