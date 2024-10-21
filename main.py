@@ -7,7 +7,7 @@ from basic_dfs.basic_df_Hromiak import basic_test_df as basic_test_df_Hromiak
 from fare_data_postprocessing import replace_unknown_values_with_null
 from trip_data_postprocessing import transform_store_and_fwd_flag_to_bool, remove_invalid_rows
 from read_write import read_fare_data_df, write_fare_data_df_to_csv, read_trip_data_df, write_trip_data_df_to_csv
-from settings import TRIP_FARE_READ_DIRECTORY_PATH, TRIP_FARE_WRITE_DIRECTORY_PATH, TRIP_DATA_READ_DIRECTORY_PATH, TRIP_DATA_WRITE_DIRECTORY_PATH, WRITE_PARTITION
+import settings as s
 import columns as c
 
 def create_spark_session():
@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     fare_data_df = read_fare_data_df(
         spark_session=spark_session,
-        dataframe_path=TRIP_FARE_READ_DIRECTORY_PATH,
+        dataframe_path=s.TRIP_FARE_READ_DIRECTORY_PATH,
         header=True,
         sep=",",
         null_value="NULL",
@@ -63,8 +63,8 @@ if __name__ == "__main__":
 
     write_fare_data_df_to_csv(
         df=fare_data_df,
-        write_folder_path=TRIP_FARE_WRITE_DIRECTORY_PATH,
-        num_files=WRITE_PARTITION,
+        write_folder_path=s.TRIP_FARE_WRITE_DIRECTORY_PATH,
+        num_files=s.WRITE_PARTITION,
         header=True,
         sep=","
     )
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     trip_data_df = read_trip_data_df(
         spark_session=spark_session,
-        dataframe_path=TRIP_DATA_READ_DIRECTORY_PATH,
+        dataframe_path=s.TRIP_DATA_READ_DIRECTORY_PATH,
         header=False,
         sep=",",
         null_value="NULL",
@@ -86,8 +86,8 @@ if __name__ == "__main__":
 
     write_trip_data_df_to_csv(
         df=trip_data_df,
-        write_folder_path=TRIP_DATA_WRITE_DIRECTORY_PATH,
-        num_files=WRITE_PARTITION,
+        write_folder_path=s.TRIP_DATA_WRITE_DIRECTORY_PATH,
+        num_files=s.WRITE_PARTITION,
         header=True,
         sep=","
     )
