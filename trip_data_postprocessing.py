@@ -46,7 +46,7 @@ def transform_store_and_fwd_flag_to_bool(df, column_name=c.store_and_fwd_flag):
     )
 
 
-def remove_invalid_rows(df, column_name=c.dropoff_longtitude):
+def remove_invalid_rows(df, column_name=c.dropoff_longitude):
     """
     Remove rows where the specified column 'dropoff_longitude' has null values.
 
@@ -64,7 +64,7 @@ def remove_invalid_rows(df, column_name=c.dropoff_longtitude):
     Examples:
         >>> trip_data_df = remove_invalid_rows(
         ...     df=trip_data_df,
-        ...     column_name=c.dropoff_longtitude
+        ...     column_name=c.dropoff_longitude
         ... )
     """
     return df.filter(f.col(column_name).isNotNull())
