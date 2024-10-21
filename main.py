@@ -66,6 +66,10 @@ if __name__ == "__main__":
     for column in fare_num_columns:
         fare_data_df = fare_proc.filter_negative_values(df=fare_data_df, column=column)
 
+    fare_data_df = fare_proc.filter_zero_fare_rows(fare_data_df)
+
+    fare_data_df = fare_proc.filter_invalid_mta_tax(fare_data_df)
+
     write_fare_data_df_to_csv(
         df=fare_data_df,
         write_folder_path=s.TRIP_FARE_WRITE_DIRECTORY_PATH,
