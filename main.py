@@ -5,8 +5,7 @@ from basic_dfs import basic_df_Krasovskyy as basic_df_k
 from basic_dfs.basic_df_mykytyshyn import basic_test_df as basic_test_df_myk
 from basic_dfs.basic_df_Hromiak import basic_test_df as basic_test_df_Hromiak
 from read_write import read_fare_data_df, write_fare_data_df_to_csv, read_trip_data_df, write_trip_data_df_to_csv
-import fare_data_postprocessing as fare_proc
-import trip_data_postprocessing as trip_proc
+from data_postprocessing import fare_data_postprocessing as fare_proc, trip_data_postprocessing as trip_proc
 import settings as s
 import columns as c
 
@@ -96,7 +95,7 @@ if __name__ == "__main__":
 
 
     trip_data_df = trip_proc.transform_store_and_fwd_flag_to_bool(trip_data_df)
-    
+
     trip_data_df = trip_proc.remove_invalid_rows(trip_data_df)
 
 
