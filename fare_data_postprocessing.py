@@ -61,7 +61,8 @@ def filter_zero_fare_rows(df):
 
     Notes:
         This is done because we cannot have 0 fare charge for ride, so such records
-        can be considered as incorrect. We have 3637 zeros in fare_amount and 3015 zeros in
+        can be considered as incorrect. We have 3637 zeros in fare_amount and 3015 zeros in total_amount,
+        so dropping these rows won't affect data too much.
 
     Args:
         df (DataFrame): DataFrame to filter.
