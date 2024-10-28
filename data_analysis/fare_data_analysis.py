@@ -1,3 +1,8 @@
+"""
+Module for functions that implement analysis of trip fare data.
+"""
+
+
 from pyspark.sql import functions as f
 import columns as c
 
