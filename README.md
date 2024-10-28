@@ -28,5 +28,5 @@ Below is a list of 20 business questions that we would like to answer when worki
 18. Which days or hours have the biggest amount of short trips (less than 3km)? 
 19. What is the distribution of trip amounts by each vendor?
 20. What is the average trip speed in each of the months?
-21. How many trips that took place in evening time (between 18:00 and 23:59)?
-22. How many trips were paid with cash?
+21. How many trips took place in evening time (between 18:00 and 23:59) and had total_amount above the average?
+22. How many trips were paid with cash and had tips_amount above the average value?
