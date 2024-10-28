@@ -6,6 +6,7 @@ from basic_dfs.basic_df_mykytyshyn import basic_test_df as basic_test_df_myk
 from basic_dfs.basic_df_Hromiak import basic_test_df as basic_test_df_Hromiak
 from read_write import read_fare_data_df, write_fare_data_df_to_csv, read_trip_data_df, write_trip_data_df_to_csv
 from data_postprocessing import fare_data_postprocessing as fare_proc, trip_data_postprocessing as trip_proc
+from data_cleaning.remove_duplicates import remove_duplicates
 import settings as s
 import columns as c
 
@@ -63,6 +64,8 @@ if __name__ == "__main__":
         unknown_value="UNK"
     )
 
+    fare_data_df = remove_duplicates(fare_data_df)
+
     fare_num_columns = [c.fare_amount, c.surcharge, c.mta_tax, c.tip_amount, c.tolls_amount, c.total_amount]
     for column in fare_num_columns:
         fare_data_df = fare_proc.filter_negative_values(df=fare_data_df, column=column)
@@ -93,6 +96,7 @@ if __name__ == "__main__":
         multi_line=True
     )
 
+    trip_data_df = remove_duplicates(trip_data_df)
 
     trip_data_df = trip_proc.transform_store_and_fwd_flag_to_bool(trip_data_df)
 
