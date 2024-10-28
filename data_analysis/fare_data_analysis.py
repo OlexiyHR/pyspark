@@ -78,7 +78,7 @@ def filter_weekday_credit_card_trips_with_high_tips(df):
     Examples:
         >>> weekday_credit_card_trips_with_high_tips = filter_weekday_credit_card_trips_with_high_tips(df)
     """
-    weekday_trips_with_high_tips = df.filter(
+    weekday_trips_with_high_tips = df.where(
         (f.col(c.payment_type) == "CRD")
         & (f.col(c.tip_amount) > f.col(c.fare_amount))
         & (f.dayofweek(f.col(c.pickup_datetime)).between(0, 4))
@@ -122,4 +122,4 @@ def count_expensive_trips(df: DataFrame) -> int:
     Examples:
         >>> expensive_trips_count = count_expensive_trips(fare_data_df)
     """
-    return df.filter(f.col(c.total_amount) >= 50).count()
+    return df.where(f.col(c.total_amount) >= 50).count()

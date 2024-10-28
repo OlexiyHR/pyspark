@@ -18,7 +18,7 @@ def count_short_trips(df: DataFrame) -> int:
     Examples:
         >>> short_trips_count = count_short_trips(trip_data_df)
     """
-    return df.filter(col(c.trip_distance) < 1).count()
+    return df.where(col(c.trip_distance) < 1).count()
 
 
 def count_large_group_trips(df: DataFrame) -> int:
@@ -35,7 +35,7 @@ def count_large_group_trips(df: DataFrame) -> int:
     Examples:
         >>> large_group_trips_count = count_large_group_trips(trip_data_df)
     """
-    return df.filter(col(c.passenger_count) >= 6).count()
+    return df.where(col(c.passenger_count) >= 6).count()
 
 
 def count_medium_duration_trips(df: DataFrame) -> int:
@@ -51,7 +51,7 @@ def count_medium_duration_trips(df: DataFrame) -> int:
     Examples:
         >>> medium_duration_trips_count = count_medium_duration_trips(trip_data_df)
     """
-    return df.filter((col(c.trip_time_in_secs) >= 1800)
+    return df.where((col(c.trip_time_in_secs) >= 1800)
                      & (col(c.trip_time_in_secs) <= 3600)).count()
 
 
