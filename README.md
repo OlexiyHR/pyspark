@@ -30,3 +30,6 @@ Below is a list of 20 business questions that we would like to answer when worki
 20. What is the average trip speed in each of the months?
 21. How many trips that took place in evening time (between 18:00 and 23:59)?
 22. How many trips were paid with cash?
+23. How many trips were shorter than 1 mile?
+24. How many trips had at least 6 passengers?
+25. What is the average total price of trips paid for with a card?
