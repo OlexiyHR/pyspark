@@ -33,6 +33,9 @@ def count_cash_tips_above_average(df):
     """
     Count cash-paid trips that have tip amount above mean value of tip amount.
 
+    Notes:
+        Question 22.
+
     Args:
         df (DataFrame): Fare data DataFrame to process.
 
@@ -50,3 +53,32 @@ def count_cash_tips_above_average(df):
     ).count()
 
     return cash_tip_count
+
+
+def filter_weekday_credit_card_trips_with_high_tips(df):
+    """
+    Select credit_card-paid trips on weekdays (from Monday to Friday) with tip amount that is bigger
+    than fare amount.
+
+    Notes:
+        Question 23.
+
+    Args:
+        df (DataFrame): Fare data DataFrame to process.
+
+    Returns:
+        DataFrame: Filtered DataFrame with credit_card-paid weekdays trips with tip amount that is bigger than fare amount
+        (payment_type column is dropped because it becomes redundant).
+
+    Examples:
+        >>> weekday_credit_card_trips_with_high_tips = filter_weekday_credit_card_trips_with_high_tips(df)
+    """
+    weekday_trips_with_high_tips = df.filter(
+        (f.col(c.payment_type) == "CRD")
+        & (f.col(c.tip_amount) > f.col(c.fare_amount))
+        & (f.dayofweek(f.col(c.pickup_datetime)).between(0, 4))
+    )
+
+    weekday_trips_with_high_tips = weekday_trips_with_high_tips.drop(c.payment_type)
+
+    return weekday_trips_with_high_tips

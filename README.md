@@ -30,3 +30,4 @@ Below is a list of 20 business questions that we would like to answer when worki
 20. What is the average trip speed in each of the months?
 21. How many trips took place in evening time (between 18:00 and 23:59) and had total_amount above the average?
 22. How many trips were paid with cash and had tips_amount above the average value?
+23. Retrieve trips that were paid with credit card and have tip amount greater than fare amount.
