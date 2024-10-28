@@ -3,6 +3,7 @@ Module for functions that implement analysis of trip fare data.
 """
 
 
+from pyspark.sql import DataFrame
 from pyspark.sql import functions as f
 import columns as c
 
@@ -73,8 +74,7 @@ def filter_weekday_credit_card_trips_with_high_tips(df):
 
     Returns:
         DataFrame: Filtered DataFrame with credit_card-paid weekdays trips with tip amount that is bigger than fare amount
-        (payment_type column is dropped because it becomes redundant).
-
+        (payment_type column is dropped because it becomes redundant
     Examples:
         >>> weekday_credit_card_trips_with_high_tips = filter_weekday_credit_card_trips_with_high_tips(df)
     """
@@ -87,3 +87,39 @@ def filter_weekday_credit_card_trips_with_high_tips(df):
     weekday_trips_with_high_tips = weekday_trips_with_high_tips.drop(c.payment_type)
 
     return weekday_trips_with_high_tips
+
+
+def average_card_payment_total(df) -> float:
+    """
+    Calculates the average total amount of trips paid for with a card.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing trip data.
+
+    Returns:
+        DataFrame: A new DataFrame containing the average total amount of card-paid trips.
+
+    Examples:
+        >>> average_total_amount_by_card = average_card_payment_total(taxi_df)
+    """
+    card_payment_type_code = 'CRD'
+    return (df
+            .filter(f.col(c.payment_type) == card_payment_type_code)
+            .agg(f.avg(c.total_amount))
+            .first()[0])
+
+
+def count_expensive_trips(df: DataFrame) -> int:
+    """
+    Filters trips with a total fare greater than 50 dollars and returns the count of these trips.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing trip fare data.
+
+    Returns:
+        int: The number of trips with a total fare greater than 50 dollars.
+
+    Examples:
+        >>> expensive_trips_count = count_expensive_trips(fare_data_df)
+    """
+    return df.filter(f.col(c.total_amount) >= 50).count()

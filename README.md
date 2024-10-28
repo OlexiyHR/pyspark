@@ -31,3 +31,9 @@ Below is a list of 20 business questions that we would like to answer when worki
 21. How many trips took place in evening time (between 18:00 and 23:59) and had total_amount above the average?
 22. How many trips were paid with cash and had tips_amount above the average value?
 23. Retrieve trips that were paid with credit card and have tip amount greater than fare amount.
+24. How many trips were shorter than 1 mile?
+25. How many trips had at least 6 passengers?
+26. What is the average total price of trips paid for with a card?
+27. How many trips cost at least 50 dollars ?
+28. How many trips lasted between 30 minutes and 1 hour ?
+29. What are the details of trips with exactly 4 passengers and used the JFK Airport rate code?
