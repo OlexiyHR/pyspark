@@ -27,26 +27,26 @@ def create_spark_session():
     return spark
 
 
-def display_demo_dataframe_mykytyshyn():
+def display_demo_dataframe_mykytyshyn(spark_session):
     df = basic_test_df_myk(spark_session)
     df.show()
 
 
-def display_demo_dataframe_krasovskyy():
+def display_demo_dataframe_krasovskyy(spark_session):
     basic_df_k.basic_test_df(spark_session=spark_session).show()
 
 
-def display_demo_dataframe_Hromiak():
+def display_demo_dataframe_Hromiak(spark_session):
     df = basic_test_df_Hromiak(spark_session)
     df.show()
 
 
-if __name__ == "__main__":
+def main():
     spark_session = create_spark_session()
 
-    display_demo_dataframe_krasovskyy()
-    display_demo_dataframe_mykytyshyn()
-    display_demo_dataframe_Hromiak()
+    display_demo_dataframe_krasovskyy(spark_session)
+    display_demo_dataframe_mykytyshyn(spark_session)
+    display_demo_dataframe_Hromiak(spark_session)
 
     fare_data_df = read_fare_data_df(
         spark_session=spark_session,
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     fare_data_df = fare_proc.filter_invalid_mta_tax(fare_data_df)
 
     total_fare_num_columns = [c.fare_amount, c.total_amount]
-    for column in [c.fare_amount, c.total_amount]:
+    for column in total_fare_num_columns:
         fare_data_df = fare_proc.remove_outliers_iqr_in_col(df=fare_data_df, column=column, multiplier=10)
 
     write_fare_data_df_to_csv(
@@ -113,3 +113,7 @@ if __name__ == "__main__":
     )
 
     spark_session.stop()
+
+
+if __name__ == "__main__":
+    main()
