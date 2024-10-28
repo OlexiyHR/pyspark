@@ -7,6 +7,7 @@ from basic_dfs.basic_df_Hromiak import basic_test_df as basic_test_df_Hromiak
 from read_write import read_fare_data_df, write_fare_data_df_to_csv, read_trip_data_df, write_trip_data_df_to_csv
 from data_postprocessing import fare_data_postprocessing as fare_proc, trip_data_postprocessing as trip_proc
 from data_cleaning.remove_duplicates import remove_duplicates
+from data_cleaning.clean_trip_data import fill_null_trip_data
 import settings as s
 import columns as c
 
@@ -46,7 +47,6 @@ if __name__ == "__main__":
     display_demo_dataframe_krasovskyy()
     display_demo_dataframe_mykytyshyn()
     display_demo_dataframe_Hromiak()
-
 
     fare_data_df = read_fare_data_df(
         spark_session=spark_session,
@@ -98,10 +98,11 @@ if __name__ == "__main__":
 
     trip_data_df = remove_duplicates(trip_data_df)
 
-    trip_data_df = trip_proc.transform_store_and_fwd_flag_to_bool(trip_data_df)
+    trip_data_df = fill_null_trip_data(trip_data_df)
 
     trip_data_df = trip_proc.remove_invalid_rows(trip_data_df)
 
+    trip_data_df = trip_proc.transform_store_and_fwd_flag_to_bool(trip_data_df)
 
     write_trip_data_df_to_csv(
         df=trip_data_df,
@@ -111,5 +112,4 @@ if __name__ == "__main__":
         sep=","
     )
 
-    
     spark_session.stop()

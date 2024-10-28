@@ -5,7 +5,6 @@ This module contains DataFrame postprocessing functions for:
 1. Transforming the `store_and_fwd_flag` column values from 'Y/N' to boolean:
    - 'Y' -> True
    - 'N' -> False
-   - null remains as null
 
 2. Removing rows where the `dropoff_longitude` column contains null values:
    - Rows with null `dropoff_longitude` have `passenger_count`, `trip_time_in_secs`, and `trip_distance` are set to 0,
@@ -23,7 +22,6 @@ def transform_store_and_fwd_flag_to_bool(df, column_name=c.store_and_fwd_flag):
 
     - 'Y' -> True
     - 'N' -> False
-    - null remains as null
 
     Args:
         df (DataFrame): Spark DataFrame for transformation.
@@ -42,7 +40,6 @@ def transform_store_and_fwd_flag_to_bool(df, column_name=c.store_and_fwd_flag):
         column_name,
         f.when(f.col(column_name) == "Y", True)
          .when(f.col(column_name) == "N", False)
-         .otherwise(None)
     )
 
 
