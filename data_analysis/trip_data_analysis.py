@@ -36,3 +36,40 @@ def count_large_group_trips(df: DataFrame) -> int:
         >>> large_group_trips_count = count_large_group_trips(trip_data_df)
     """
     return df.filter(col(c.passenger_count) >= 6).count()
+
+
+def count_medium_duration_trips(df: DataFrame) -> int:
+    """
+    Filters trips with a duration between 30 minutes and 1 hour and returns the count of these trips.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing trip data.
+
+    Returns:
+        int: The number of trips with a duration between 30 minutes (1800 seconds) and 1 hour (3600 seconds).
+
+    Examples:
+        >>> medium_duration_trips_count = count_medium_duration_trips(trip_data_df)
+    """
+    return df.filter((col(c.trip_time_in_secs) >= 1800)
+                     & (col(c.trip_time_in_secs) <= 3600)).count()
+
+
+def jfk_airport_trips_with_four_passengers(df: DataFrame) -> DataFrame:
+    """
+    Filters trips that have exactly 4 passengers and used the JFK Airport rate code (rate_code = 2).
+    Returns details of these trips.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing trip data.
+
+    Returns:
+         DataFrame: A new DataFrame containing only trips with 4 passengers and the JFK Airport rate code.
+
+    Examples:
+        >>> jfk_trips_with_four_passengers = jfk_airport_trips_with_four_passengers(trip_data_df)
+    """
+    filtered_df = df.filter((col(c.passenger_count) == 4) & (col(c.rate_code) == 2))
+
+    # Drop the passenger_count and rate_code columns, as they are the same and known.
+    return filtered_df.drop(c.passenger_count, c.rate_code)

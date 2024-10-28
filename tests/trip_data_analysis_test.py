@@ -2,7 +2,7 @@ import unittest
 from pyspark.sql import SparkSession
 
 import columns as c
-from data_analysis.trip_data_analysis import count_short_trips, count_large_group_trips
+from data_analysis.trip_data_analysis import count_short_trips, count_large_group_trips, count_medium_duration_trips, jfk_airport_trips_with_four_passengers
 
 
 class TripDataAnalysisTests(unittest.TestCase):
@@ -65,6 +65,36 @@ class TripDataAnalysisTests(unittest.TestCase):
         large_group_trips_count = count_large_group_trips(df)
 
         self.assertEqual(large_group_trips_count, 0)
+
+
+    def test_count_trips_duration_between_30_and_60_minutes(self):
+        data = [
+            (1800, 2),  # 30 minutes
+            (2400, 3),  # 40 minutes
+            (3600, 4),  # 60 minutes
+            (1200, 1)   # 20 minutes
+        ]
+        columns = [c.trip_time_in_secs, c.passenger_count]
+        df = self.spark.createDataFrame(data, columns)
+
+        trips_duration_count = count_medium_duration_trips(df)
+
+        self.assertEqual(trips_duration_count, 3)  # 1800, 2400, and 3600 are between 30 and 60 minutes
+
+
+    def test_jfk_airport_trips_with_four_passengers(self):
+        data = [
+            (4, 2),  # 4 passengers, JFK rate code
+            (3, 2),  # Not 4 passengers
+            (4, 1),  # Not JFK rate code
+            (4, 2)   # 4 passengers, JFK rate code
+        ]
+        columns = [c.passenger_count, c.rate_code]
+        df = self.spark.createDataFrame(data, columns)
+
+        jfk_trips_with_four_passengers_df = jfk_airport_trips_with_four_passengers(df)
+
+        self.assertEqual(jfk_trips_with_four_passengers_df.count(), 2)  # Two trips with 4 passengers and JFK rate code
 
 
 if __name__ == "__main__":

@@ -33,3 +33,7 @@ Below is a list of 20 business questions that we would like to answer when worki
 23. How many trips were shorter than 1 mile?
 24. How many trips had at least 6 passengers?
 25. What is the average total price of trips paid for with a card?
+
+27. How many trips cost at least 50 dollars ?
+28. How many trips lasted between 30 minutes and 1 hour ?
+29. What are the details of trips with exactly 4 passengers and used the JFK Airport rate code?

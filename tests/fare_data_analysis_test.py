@@ -2,7 +2,7 @@ import unittest
 from pyspark.sql import SparkSession
 
 import columns as c
-from data_analysis.fare_data_analysis import average_card_payment_total
+from data_analysis.fare_data_analysis import average_card_payment_total, count_expensive_trips
 
 
 class FareDataAnalysisTests(unittest.TestCase):
@@ -45,6 +45,21 @@ class FareDataAnalysisTests(unittest.TestCase):
         avg_total = average_card_payment_total(df)
 
         self.assertEqual(avg_total, 0.0)
+
+
+    def test_count_trips_cost_at_least_50_dollars(self):
+        data = [
+            (60.0, 2),
+            (45.0, 4),
+            (55.0, 3),
+            (50.0, 1)
+        ]
+        columns = [c.total_amount, c.passenger_count]
+        df = self.spark.createDataFrame(data, columns)
+
+        trips_cost_at_least_50_count = count_expensive_trips(df)
+
+        self.assertEqual(trips_cost_at_least_50_count, 3)  # 60, 55, and 50 are >= 50
 
 
 if __name__ == "__main__":
