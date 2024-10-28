@@ -1,5 +1,6 @@
 import unittest
 from pyspark.sql import SparkSession
+
 import columns as c
 from data_analysis.trip_data_analysis import count_short_trips, count_large_group_trips
 
