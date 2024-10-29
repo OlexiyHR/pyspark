@@ -81,7 +81,7 @@ def filter_weekday_credit_card_trips_with_high_tips(df):
     weekday_trips_with_high_tips = df.where(
         (f.col(c.payment_type) == "CRD")
         & (f.col(c.tip_amount) > f.col(c.fare_amount))
-        & (f.dayofweek(f.col(c.pickup_datetime)).between(0, 4))
+        & (f.dayofweek(f.col(c.pickup_datetime)).between(2, 6))
     )
 
     weekday_trips_with_high_tips = weekday_trips_with_high_tips.drop(c.payment_type)
