@@ -188,8 +188,10 @@ class FareDataAnalysisTests(unittest.TestCase):
             ("2024-10-05 22:30:00", "CSH", 0.0, 24.0),
             ("2024-10-06 18:30:00", "CRD", 15.0, 10.0),
             ("2024-10-07 19:00:00", "CRD", 3.0, 13.0),
+            ("2024-10-07 20:00:00", "CRD", 3.0, 2.0),
             ("2024-10-08 21:00:00", "CSH", 60.0, 18.0),
             ("2024-10-08 20:00:00", "CRD", 60.0, 18.0),
+            ("2024-10-11 15:30:00", "CRD", 10.0, 5.0),
         ]
 
         columns = [c.pickup_datetime, c.payment_type, c.tip_amount, c.fare_amount]
@@ -200,7 +202,9 @@ class FareDataAnalysisTests(unittest.TestCase):
 
         expected_data = [
             ("2024-10-02 10:00:00", 12.0, 10.0),
+            ("2024-10-07 20:00:00", 3.0, 2.0),
             ("2024-10-08 20:00:00", 60.0, 18.0),
+            ("2024-10-11 15:30:00", 10.0, 5.0),
         ]
 
         columns = [c.pickup_datetime, c.tip_amount, c.fare_amount]
