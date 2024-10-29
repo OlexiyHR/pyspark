@@ -2,7 +2,6 @@
 Module for functions that implement analysis of trip fare data.
 """
 
-
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as f
 import columns as c
@@ -105,7 +104,8 @@ def average_card_payment_total(df) -> float:
     card_payment_type_code = 'CRD'
     return (df
             .filter(f.col(c.payment_type) == card_payment_type_code)
-            .agg(f.avg(c.total_amount))
+            .select(f.mean(c.total_amount).alias("avg_total_amount"))
+            .fillna(0.0, subset=["avg_total_amount"])
             .first()[0])
 
 

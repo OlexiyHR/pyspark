@@ -1,5 +1,7 @@
 import unittest
 from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StringType, StructField, TimestampType
+
 import columns as c
 from data_cleaning.remove_duplicates import remove_duplicates
 
@@ -67,7 +69,10 @@ class RemoveDuplicatesTests(unittest.TestCase):
         self.assertEqual(result_df.collect(), expected_df.collect())
 
     def test_remove_duplicates_empty_dataframe(self):
-        columns = [c.medallion, c.pickup_datetime, 'other_column']
+        columns = StructType([
+            StructField(c.medallion, StringType(), False),
+            StructField(c.pickup_datetime, TimestampType(), False),
+        ])
         df = self.spark.createDataFrame([], schema=columns)
         expected_df = self.spark.createDataFrame([], schema=columns)
 
