@@ -1,5 +1,5 @@
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, month, avg, count
 
 import columns as c
 
@@ -73,3 +73,60 @@ def jfk_airport_trips_with_four_passengers(df: DataFrame) -> DataFrame:
 
     # Drop the passenger_count and rate_code columns, as they are the same and known.
     return filtered_df.drop(c.passenger_count, c.rate_code)
+
+
+def trip_amounts_distribution_by_vendor(df: DataFrame) -> DataFrame:
+    """
+        Groups the trips by vendor ID and counts the rows for each vendor.
+
+        Args:
+            df (DataFrame): Spark DataFrame containing trip data.
+
+        Returns:
+             DataFrame: A new DataFrame containing the vendor IDs and the number of trips of that vendor.
+
+        Examples:
+            >>> vendor_trip_counts = trip_amounts_distribution_by_vendor(trip_data_df)
+    """
+    return df.groupBy(c.vendor_id).agg(count("*").alias("trip_count"))
+
+
+def average_trip_speed_by_month(df: DataFrame) -> DataFrame:
+    """
+    Calculates the average trip speed for each month.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing trip data.
+
+    Returns:
+        DataFrame: A new DataFrame with month and average trip speed.
+
+    Examples:
+        >>> avg_speed_per_month = average_trip_speed_by_month(trip_data_df)
+    """
+    month_column_name = "month"
+    trip_speed_column_name = "trip_speed_in_miles_per_hour"
+    average_trip_speed_column_name = "average_trip_speed_in_miles_per_hour"
+
+    return (
+        df.withColumn(month_column_name, month(c.pickup_datetime))
+          .withColumn(trip_speed_column_name, col(c.trip_distance) / (col(c.trip_time_in_secs) / 3600))
+          .groupBy(month_column_name)
+          .agg(avg(trip_speed_column_name).alias(average_trip_speed_column_name))
+    )
+
+
+def passenger_count_distribution(df: DataFrame) -> DataFrame:
+    """
+    Calculates the distribution of the number of passengers per trip.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing trip data.
+
+    Returns:
+        DataFrame: A new DataFrame with passenger count and the number of trips for each count.
+
+    Examples:
+        >>> passenger_distribution = passenger_count_distribution(trip_data_df)
+    """
+    return df.groupBy(c.passenger_count).agg(count("*").alias("trip_count"))
