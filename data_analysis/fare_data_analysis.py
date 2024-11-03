@@ -147,8 +147,10 @@ def top_10_successful_drivers(df):
         )
     )
 
-    top_10_by_trips = drivers_summary_df.orderBy(f.desc("total_trips")).limit(10)
-    top_10_by_trip_income = drivers_summary_df.orderBy(f.desc("total_trip_cost")).limit(10)
-    top_10_by_tips = drivers_summary_df.orderBy(f.desc("total_tips")).limit(10)
+    top_10_by_trips = drivers_summary_df.orderBy(f.desc("total_trips")).select("medallion", "hack_license", "total_trips").limit(10)
+    top_10_by_trip_income = drivers_summary_df.orderBy(f.desc("total_trip_cost")).select("medallion", "hack_license", "total_trip_cost").limit(10)
+    top_10_by_tips = drivers_summary_df.orderBy(f.desc("total_tips")).select("medallion", "hack_license", "total_tips").limit(10)
 
     return top_10_by_trips, top_10_by_trip_income, top_10_by_tips
+
+
