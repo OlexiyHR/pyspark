@@ -1,3 +1,5 @@
+import os
+
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
@@ -8,6 +10,7 @@ from read_write import read_fare_data_df, write_fare_data_df_to_csv, read_trip_d
 from data_postprocessing import fare_data_postprocessing as fare_proc, trip_data_postprocessing as trip_proc
 from data_cleaning.remove_duplicates import remove_duplicates
 from data_cleaning.clean_trip_data import fill_null_trip_data
+import data_analysis.fare_data_analysis as fda
 import settings as s
 import columns as c
 
@@ -81,6 +84,27 @@ def main():
     write_fare_data_df_to_csv(
         df=fare_data_df,
         write_folder_path=s.TRIP_FARE_WRITE_DIRECTORY_PATH,
+        num_files=s.WRITE_PARTITION,
+        header=True,
+        sep=","
+    )
+
+    os.makedirs(os.path.dirname(s.QUESTION21_WRITE_PATH), exist_ok=True)
+    os.makedirs(os.path.dirname(s.QUESTION22_WRITE_PATH), exist_ok=True)
+    os.makedirs(s.QUESTION23_WRITE_PATH, exist_ok=True)
+
+    evening_rides_with_high_total_amount_count = fda.count_evening_rides_with_high_total_amount(fare_data_df)
+    with open(s.QUESTION21_WRITE_PATH, "w") as f:
+        f.write(str(evening_rides_with_high_total_amount_count))
+
+    cash_tips_above_average_count = fda.count_cash_tips_above_average(fare_data_df)
+    with open(s.QUESTION22_WRITE_PATH, "w") as f:
+        f.write(str(cash_tips_above_average_count))
+
+    weekday_credit_card_trips_with_high_tips = fda.filter_weekday_credit_card_trips_with_high_tips(fare_data_df)
+    write_fare_data_df_to_csv(
+        df=weekday_credit_card_trips_with_high_tips,
+        write_folder_path=s.QUESTION23_WRITE_PATH,
         num_files=s.WRITE_PARTITION,
         header=True,
         sep=","
