@@ -123,3 +123,32 @@ def count_expensive_trips(df: DataFrame) -> int:
         >>> expensive_trips_count = count_expensive_trips(fare_data_df)
     """
     return df.where(f.col(c.total_amount) >= 50).count()
+
+
+def top_10_successful_drivers(df):
+    """
+    Identify the 10 most successful taxi drivers by his:
+    1. Total number of trips.
+    2. Total cost of trips.
+    3. Total tips received.
+
+    Args:
+        df (DataFrame): Fare data DataFrame to process.
+
+    Returns:
+        DataFrame: DataFrame of top 10 drivers based on total trips, trip cost, and tips.
+    """
+    drivers_summary_df = (
+        df.groupBy("medallion", "hack_license")
+        .agg(
+            f.count("*").alias("total_trips"),
+            f.sum("total_amount").alias("total_trip_cost"),
+            f.sum("tip_amount").alias("total_tips")
+        )
+    )
+
+    top_10_by_trips = drivers_summary_df.orderBy(f.desc("total_trips")).limit(10)
+    top_10_by_trip_income = drivers_summary_df.orderBy(f.desc("total_trip_cost")).limit(10)
+    top_10_by_tips = drivers_summary_df.orderBy(f.desc("total_tips")).limit(10)
+
+    return top_10_by_trips, top_10_by_trip_income, top_10_by_tips
