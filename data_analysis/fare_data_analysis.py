@@ -1,10 +1,11 @@
 """
 Module for functions that implement analysis of trip fare data.
 """
-from itertools import groupby
+
 
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as f
+import pyspark.sql.types as t
 import columns as c
 
 
@@ -172,12 +173,26 @@ def most_profitable_months_and_days(df):
 
     Returns:
         Tuple[DataFrame, DataFrame]: DataFrames with trip costs for every month and day of the week.
+
+    Examples:
+        >>> month_profit_df, day_of_week_profit_df = most_profitable_months_and_days(df)
     """
     df = df.withColumn("month", f.month(c.pickup_datetime)).withColumn("day_of_week", f.dayofweek(c.pickup_datetime))
 
-    month_profit = df.groupBy("month").agg(f.sum(c.total_amount).alias("total_trip_cost")).orderBy(
+    month_names = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June", 7: "July",
+                   8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
+    day_names = {1: "Sunday", 2: "Monday", 3: "Tuesday", 4: "Wednesday", 5: "Thursday", 6: "Friday", 7: "Saturday"}
+
+    month_name_udf = f.udf(lambda m: month_names.get(m, "Unknown"), t.StringType())
+    day_name_udf = f.udf(lambda d: day_names.get(d, "Unknown"), t.StringType())
+
+    df = (df.withColumn("month_name", month_name_udf(f.col("month")))
+            .withColumn("day_name", day_name_udf(f.col("day_of_week")))
+         )
+
+    month_profit = df.groupBy("month_name").agg(f.sum(c.total_amount).alias("total_trip_cost")).orderBy(
         f.desc("total_trip_cost"))
-    day_of_week_profit = df.groupBy("day_of_week").agg(f.sum(c.total_amount).alias("total_trip_cost")).orderBy(
+    day_of_week_profit = df.groupBy("day_name").agg(f.sum(c.total_amount).alias("total_trip_cost")).orderBy(
         f.desc("total_trip_cost"))
 
     return month_profit, day_of_week_profit
@@ -196,13 +211,15 @@ def monthly_mta_tax_by_vendor(df):
     Returns:
         DataFrame: DataFrames with mta_tax total amount from each vendor monthly.
 
+    Examples:
+        >>> mta_taxes_df = monthly_mta_tax_by_vendor(df)
     """
-    df_with_month = df.withColumn("month", f.date_format(f.col("pickup_datetime"), "MMMM"))
+    df_with_month = df.withColumn("month_name", f.date_format(f.col("pickup_datetime"), "MMMM"))
 
     mta_taxes = (df_with_month
-                 .groupBy(c.vendor_id, "month")
+                 .groupBy(c.vendor_id, "month_name")
                  .agg(f.sum(c.mta_tax).alias("total_mta_tax"))
-                 .orderBy(f.desc(c.vendor_id, "month", "total_mta_tax"))
+                 .orderBy(f.desc("total_mta_tax"))
                 )
 
     return mta_taxes

@@ -91,7 +91,12 @@ def top_10_drivers_by_between_ride_distance(df):
     Returns:
         DataFrame: DataFrame with medallion, hack_license, total between-ride distance of top 10 drivers.
                    Sorted in descending order.
+
+    Examples:
+        >>> top_10_drivers_df = top_10_drivers_by_between_ride_distance(df)
     """
+    earth_radius_km = 6371.0
+
     taxi_driver_window = Window.partitionBy(c.medallion, c.hack_license).orderBy(c.pickup_datetime)
 
     lagged_dropoff_coordinates_df = (df.withColumn("prev_dropoff_longitude", f.lag(c.dropoff_longitude).over(taxi_driver_window))
@@ -105,9 +110,11 @@ def top_10_drivers_by_between_ride_distance(df):
                        .withColumn("prev_dropoff_latitude_rad", f.radians("prev_dropoff_latitude"))
                       )
 
+    double_earth_radius_km_col = f.lit(2 * earth_radius_km)
+
     df_with_haversine_distance = df_with_radians.withColumn(
         "inter_ride_distance",
-        2 * s.EARTH_RADIUS_KM
+        double_earth_radius_km_col
         * f.asin(
             f.sqrt(
                 f.pow(
@@ -143,12 +150,18 @@ def get_driver_peak_load_days_in_december(df):
     """
     Find top 3 peak load days for each driver during December.
 
+    Note:
+        Question 33.
+
     Args:
         df (DataFrame): Trip data DataFrame to process .
 
     Returns:
         DataFrame: DataFrame with `medallion`, `hack_license`, `day`, and `trip_count`
                    for top three peak load days in December.
+
+    Examples:
+        >>> ranked_trip_counts_df = get_driver_peak_load_days_in_december(df)
     """
     december_df = df.filter(f.month(c.pickup_datetime) == 12)
 

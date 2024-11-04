@@ -217,6 +217,96 @@ class FareDataAnalysisTests(unittest.TestCase):
         self.assertTrue(diff_filtered.isEmpty())
         self.assertTrue(diff_expected.isEmpty())
 
+    def test_most_profitable_months_and_days(self):
+        """Test most_profitable_months_and_days() with month and day names."""
+        data = [
+            ("2024-01-01 18:30:00", 20.0),
+            ("2024-01-15 12:30:00", 15.0),
+            ("2024-02-10 10:00:00", 30.0),
+            ("2024-02-20 20:30:00", 25.0),
+            ("2024-03-05 22:30:00", 50.0),
+            ("2024-03-06 18:30:00", 60.0),
+            ("2024-03-07 19:00:00", 45.0),
+            ("2024-03-15 20:00:00", 35.0),
+            ("2024-04-01 21:00:00", 70.0),
+            ("2024-04-15 20:00:00", 80.0),
+            ("2024-04-20 15:30:00", 90.0),
+        ]
+
+        columns = [c.pickup_datetime, c.total_amount]
+        df = self.spark.createDataFrame(data, schema=columns)
+
+        month_profit, day_of_week_profit = fd_analysis.most_profitable_months_and_days(df)
+
+        expected_month_data = [
+            ("April", 240.0),
+            ("March", 190.0),
+            ("February", 55.0),
+            ("January", 35.0),
+        ]
+        expected_month_columns = ["month_name", "total_trip_cost"]
+        expected_month_df = self.spark.createDataFrame(expected_month_data, schema=expected_month_columns)
+
+        expected_day_data = [
+            ("Monday", 185.0),
+            ("Saturday", 120.0),
+            ("Tuesday", 75.0),
+            ("Wednesday", 60.0),
+            ("Thursday", 45.0),
+            ("Friday", 35.0),
+        ]
+        expected_day_columns = ["day_name", "total_trip_cost"]
+        expected_day_df = self.spark.createDataFrame(expected_day_data, schema=expected_day_columns)
+
+        diff_months = month_profit.exceptAll(expected_month_df)
+        diff_months_expected = expected_month_df.exceptAll(month_profit)
+        self.assertTrue(diff_months.isEmpty())
+        self.assertTrue(diff_months_expected.isEmpty())
+
+        diff_days = day_of_week_profit.exceptAll(expected_day_df)
+        diff_days_expected = expected_day_df.exceptAll(day_of_week_profit)
+        self.assertTrue(diff_days.isEmpty())
+        self.assertTrue(diff_days_expected.isEmpty())
+
+    def test_monthly_mta_tax_by_vendor(self):
+        """Test monthly_mta_tax_by_vendor() function."""
+        data = [
+            ("vendor_1", "2024-01-15 08:00:00", 0.5),
+            ("vendor_1", "2024-01-20 12:00:00", 0.5),
+            ("vendor_2", "2024-02-10 10:00:00", 0.5),
+            ("vendor_1", "2024-02-15 09:00:00", 0.0),
+            ("vendor_2", "2024-02-25 18:00:00", 0.5),
+            ("vendor_1", "2024-03-01 07:00:00", 0.5),
+            ("vendor_2", "2024-03-20 11:00:00", 0.0),
+        ]
+
+        columns = ["vendor_id", "pickup_datetime", "mta_tax"]
+
+        df = self.spark.createDataFrame(data, schema=columns)
+
+        result_df = fd_analysis.monthly_mta_tax_by_vendor(df)
+
+        expected_data = [
+            ("vendor_2", "February", 1.0),
+            ("vendor_1", "January", 1.0),
+            ("vendor_1", "March", 0.5),
+            ("vendor_1", "February", 0.0),
+            ("vendor_2", "March", 0.0)
+        ]
+
+        expected_columns = ["vendor_id", "month_name", "total_mta_tax"]
+
+        expected_df = self.spark.createDataFrame(expected_data, schema=expected_columns)
+
+        result_df_sorted = result_df.orderBy("total_mta_tax")
+        expected_df_sorted = expected_df.orderBy("total_mta_tax")
+
+        diff_filtered = result_df_sorted.exceptAll(expected_df_sorted)
+        diff_expected = expected_df_sorted.exceptAll(result_df_sorted)
+
+        self.assertTrue(diff_filtered.isEmpty())
+        self.assertTrue(diff_expected.isEmpty())
+
 
 if __name__ == "__main__":
     unittest.main()
