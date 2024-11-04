@@ -11,6 +11,7 @@ import constants
 import os
 from pyspark.sql import types as t
 from pyspark.sql import functions as f
+from pyspark.sql import DataFrame
 
 
 def get_result_directory_path_for_question(question_number: int) -> str:
@@ -248,3 +249,22 @@ def write_trip_data_df_to_csv(df, write_folder_path, num_files=1, header=True, s
         num_files = 1
 
     df.repartition(num_files).write.csv(write_folder_path, mode='overwrite', header=header, sep=sep)
+
+
+def write_question_results(question_num: int, results):
+    if isinstance(results, DataFrame):
+        write_df_to_csv(results, get_result_directory_path_for_question(question_num))
+    else:
+        write_results_to_txt(results, get_result_directory_path_for_question(question_num))
+
+
+def write_df_to_csv(df, folder_path):
+    (df
+     .repartition(s.WRITE_PARTITION)
+     .write
+     .csv(folder_path, mode='overwrite', header=True, sep=','))
+
+
+def write_results_to_txt(results, folder_path):
+    with open(os.path.join(folder_path, "results.txt"), "w") as file:
+        file.write(str(results))
