@@ -5,9 +5,23 @@ This module contains read_fare_data_df(), write_fare_data_df_to_csv() functions 
 read_trip_data_df(), write_trip_data_df_to_csv() functions for r/w trip data.
 """
 
+import settings as s
+import constants
 
+import os
 from pyspark.sql import types as t
 from pyspark.sql import functions as f
+from pyspark.sql import DataFrame
+
+
+def get_result_directory_path_for_question(question_number: int, part: int = 0) -> str:
+    return os.path.join(s.RESULTS_PATH, f"question_{question_number}", str(part) if part != 0 else "")
+
+
+def setup_directories():
+    for i in range(constants.TOTAL_QUESTIONS_COUNT):
+        result_path = get_result_directory_path_for_question(i)
+        os.makedirs(result_path, exist_ok=True)
 
 
 def read_fare_data_df(spark_session,
@@ -235,3 +249,22 @@ def write_trip_data_df_to_csv(df, write_folder_path, num_files=1, header=True, s
         num_files = 1
 
     df.repartition(num_files).write.csv(write_folder_path, mode='overwrite', header=header, sep=sep)
+
+
+def write_question_results(results, question_num: int, part: int = 0):
+    if isinstance(results, DataFrame):
+        write_df_to_csv(results, get_result_directory_path_for_question(question_num, part))
+    else:
+        write_results_to_txt(results, get_result_directory_path_for_question(question_num, part))
+
+
+def write_df_to_csv(df, folder_path):
+    (df
+     .repartition(s.WRITE_PARTITION)
+     .write
+     .csv(folder_path, mode='overwrite', header=True, sep=','))
+
+
+def write_results_to_txt(results, folder_path):
+    with open(os.path.join(folder_path, "results.txt"), "w") as file:
+        file.write(str(results))
