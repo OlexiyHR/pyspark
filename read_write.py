@@ -14,8 +14,8 @@ from pyspark.sql import functions as f
 from pyspark.sql import DataFrame
 
 
-def get_result_directory_path_for_question(question_number: int) -> str:
-    return os.path.join(s.RESULTS_PATH, f"question_{question_number}")
+def get_result_directory_path_for_question(question_number: int, part: int = 0) -> str:
+    return os.path.join(s.RESULTS_PATH, f"question_{question_number}", str(part) if part != 0 else "")
 
 
 def setup_directories():
@@ -251,11 +251,11 @@ def write_trip_data_df_to_csv(df, write_folder_path, num_files=1, header=True, s
     df.repartition(num_files).write.csv(write_folder_path, mode='overwrite', header=header, sep=sep)
 
 
-def write_question_results(question_num: int, results):
+def write_question_results(results, question_num: int, part: int = 0):
     if isinstance(results, DataFrame):
-        write_df_to_csv(results, get_result_directory_path_for_question(question_num))
+        write_df_to_csv(results, get_result_directory_path_for_question(question_num, part))
     else:
-        write_results_to_txt(results, get_result_directory_path_for_question(question_num))
+        write_results_to_txt(results, get_result_directory_path_for_question(question_num, part))
 
 
 def write_df_to_csv(df, folder_path):
