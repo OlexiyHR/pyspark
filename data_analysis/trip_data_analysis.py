@@ -139,24 +139,23 @@ def top_10_drivers_by_between_ride_distance(df):
     return top_10_drivers
 
 
-def get_driver_peak_load_hours_in_december(df):
+def get_driver_peak_load_days_in_december(df):
     """
-    Find top 3 peak load hours for each driver during December by counting trips in each hour
-    and ranking them to get the peak hour per driver.
+    Find top 3 peak load days for each driver during December.
 
     Args:
         df (DataFrame): Trip data DataFrame to process .
 
     Returns:
-        DataFrame: DataFrame with `medallion`, `hack_license`, `hour`, and `trip_count`
-                   for top three peak load hours in December.
+        DataFrame: DataFrame with `medallion`, `hack_license`, `day`, and `trip_count`
+                   for top three peak load days in December.
     """
     december_df = df.filter(f.month(c.pickup_datetime) == 12)
 
-    december_df = december_df.withColumn("hour", f.hour("pickup_datetime"))
+    december_df = december_df.withColumn("day", f.to_date("pickup_datetime"))
 
     driver_hourly_trip_counts = (december_df
-                                 .groupBy(c.medallion, c.hack_license, "hour")
+                                 .groupBy(c.medallion, c.hack_license, "day")
                                  .agg(f.count("*").alias("trip_count"))
                                 )
 
@@ -165,7 +164,7 @@ def get_driver_peak_load_hours_in_december(df):
     ranked_trip_counts = (driver_hourly_trip_counts
                           .withColumn("rank", f.rank().over(driver_window))
                           .filter(f.col("rank").isin(1, 2, 3))
-                          .select(c.medallion, c.hack_license, "hour", "trip_count")
+                          .select(c.medallion, c.hack_license, "day", "trip_count")
                          )
 
     return ranked_trip_counts
