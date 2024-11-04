@@ -4,7 +4,11 @@ from pyspark.sql import SparkSession
 from basic_dfs import basic_df_Krasovskyy as basic_df_k
 from basic_dfs.basic_df_mykytyshyn import basic_test_df as basic_test_df_myk
 from basic_dfs.basic_df_Hromiak import basic_test_df as basic_test_df_Hromiak
-from read_write import read_fare_data_df, write_fare_data_df_to_csv, read_trip_data_df, write_trip_data_df_to_csv
+from read_write import (read_fare_data_df,
+                        write_fare_data_df_to_csv,
+                        read_trip_data_df,
+                        write_trip_data_df_to_csv,
+                        setup_directories)
 from data_postprocessing import fare_data_postprocessing as fare_proc, trip_data_postprocessing as trip_proc
 from data_cleaning.remove_duplicates import remove_duplicates
 from data_cleaning.clean_trip_data import fill_null_trip_data
@@ -77,6 +81,8 @@ def main():
     total_fare_num_columns = [c.fare_amount, c.total_amount]
     for column in total_fare_num_columns:
         fare_data_df = fare_proc.remove_outliers_iqr_in_col(df=fare_data_df, column=column, multiplier=10)
+
+    setup_directories()
 
     write_fare_data_df_to_csv(
         df=fare_data_df,

@@ -5,9 +5,22 @@ This module contains read_fare_data_df(), write_fare_data_df_to_csv() functions 
 read_trip_data_df(), write_trip_data_df_to_csv() functions for r/w trip data.
 """
 
+import settings as s
+import constants
 
+import os
 from pyspark.sql import types as t
 from pyspark.sql import functions as f
+
+
+def get_result_directory_path_for_question(question_number: int) -> str:
+    return os.path.join(s.RESULTS_PATH, f"question_{question_number}")
+
+
+def setup_directories():
+    for i in range(constants.TOTAL_QUESTIONS_COUNT):
+        result_path = get_result_directory_path_for_question(i)
+        os.makedirs(result_path, exist_ok=True)
 
 
 def read_fare_data_df(spark_session,
