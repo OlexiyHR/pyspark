@@ -61,6 +61,79 @@ class FareDataAnalysisTests(unittest.TestCase):
 
         self.assertEqual(trips_cost_at_least_50_count, 3)  # 60, 55, and 50 are >= 50
 
+
+    def test_average_tip_by_payment_type(self):
+        data = [
+            ("Card", 2.5),
+            ("Cash", 0.0),
+            ("Card", 3.0),
+            ("Cash", 1.0)
+        ]
+        columns = ["payment_type", "tip_amount"]
+        df = self.spark.createDataFrame(data, columns)
+
+        result_df = fd_analysis.average_tip_by_payment_type(df)
+        result = {row.payment_type: row.average_tip for row in result_df.collect()}
+
+        self.assertAlmostEqual(result["Card"], 2.75, places=2)
+        self.assertAlmostEqual(result["Cash"], 0.5, places=2)
+
+
+    def test_vendor_with_highest_fare(self):
+        data = [
+            ("V1", 100.0),
+            ("V2", 150.0),
+            ("V1", 200.0),
+            ("V2", 50.0)
+        ]
+        columns = ["vendor_id", "fare_amount"]
+        df = self.spark.createDataFrame(data, columns)
+
+        result_df = fd_analysis.vendor_with_highest_fare(df)
+        top_vendor = result_df.first()
+
+        self.assertEqual(top_vendor.vendor_id, "V1")
+        self.assertAlmostEqual(top_vendor.total_fare, 300.0, places=2)
+
+
+    def test_cumulative_total_fare_on_july_4(self):
+        data = [
+            ("D1", "2023-07-04 08:00:00", 50.0),
+            ("D1", "2023-07-04 09:00:00", 20.0),
+            ("D2", "2023-07-04 10:00:00", 30.0),
+            ("D1", "2023-07-04 11:00:00", 10.0),
+            ("D1", "2023-07-05 11:00:00", 100.0)
+        ]
+        columns = ["hack_license", "pickup_datetime", "total_amount"]
+        df = self.spark.createDataFrame(data, columns)
+
+        result_df = fd_analysis.cumulative_total_fare_on_july_4(df)
+        result = {row.hack_license: row.cumulative_fare for row in
+                  result_df.filter("pickup_datetime = '2023-07-04 11:00:00'").collect()}
+
+        self.assertAlmostEqual(result["D1"], 80.0, places=2)
+
+
+    def test_top_5_drivers_by_trip_count_on_july_4(self):
+        data = [
+            ("D1", "2023-07-04 08:00:00", 50.0),
+            ("D2", "2023-07-04 09:00:00", 20.0),
+            ("D1", "2023-07-04 10:00:00", 70.0),
+            ("D3", "2023-07-04 11:00:00", 30.0),
+            ("D1", "2023-07-04 12:00:00", 40.0),
+            ("D2", "2023-07-04 13:00:00", 60.0),
+            ("D2", "2023-07-05 13:00:00", 160.0)
+        ]
+        columns = ["hack_license", "pickup_datetime", "total_amount"]
+        df = self.spark.createDataFrame(data, columns)
+
+        result_df = fd_analysis.top_5_drivers_by_trip_count_on_july_4(df)
+        result = [(row.hack_license, row.total_fare) for row in result_df.collect()]
+
+        expected_top_drivers = [("D1", 160.0), ("D2", 80.0), ("D3", 30.0)]
+        self.assertEqual(result, expected_top_drivers)
+
+
     def test_count_evening_rides_with_high_total_amount(self):
         """Test count_evening_rides_with_high_total_amount() in general case."""
         data = [
