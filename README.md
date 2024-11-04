@@ -15,14 +15,14 @@ Below is a list of 20 business questions that we would like to answer when worki
 5. Which specific pickup or dropoff locations (i.e. airports, offices) have the highest volume of trips?
 6. Which NYC borough has the biggest traffic?
 7. Does the tip amount depend on the pickup / dropoff borough?
-8. How does the tipping amount depend on the payment type?
+8. How does the tipping amount depend on the payment type? (Hromiak)
 9. How does the tipping amount depend on the distance / duration / time of the day?
 10. Which rate codes are the most profitable? (Mykytyshyn)
-11. Which vendor has the highest fare?
+11. Which vendor has the highest fare? (Hromiak)
 12. How much MTA tax is paid by taxi operators each month? (Krasovskyy)
 13. Does payment type depend on the total payment amount? (i.e. are people more inclined to pay with card when the price is higher?)
 14. What is the distribution of the amount of passengers per trip? (Mykytyshyn)
-15. Does the number of passengers affect the trip price?
+15. Does the number of passengers affect the trip price? (Hromiak)
 16. How does the number of passengers depend on the time of day?
 17. How does the number of passengers depend on the pickup location (borough)?
 18. Which days or hours have the biggest amount of short trips (less than 3km)? (Mykytyshin)
@@ -38,7 +38,7 @@ Below is a list of 20 business questions that we would like to answer when worki
 28. How many trips lasted between 30 minutes and 1 hour? (Hromiak)
 29. What are the details of trips with exactly 4 passengers and used the JFK Airport rate code? (Hromiak)
 30. Which 10 taxi drivers have the biggest total distance driven between taxi rides (from previous drop off location to current start location)? (Krasovskyy)
-31. What is the cumulative total_fare sum for each driver during 4th of July?
-32. Top 5 drivers by the count of trips by 4th of July.
+31. What is the cumulative total_fare sum for each driver during 4th of July? (Hromiak)
+32. Top 5 drivers by the count of trips by 4th of July (sorted primarily by trip count and secondarily by total fare amount in descending order in cases of ties) (Hromiak)
 33. Peak load hours for each driver during December? (Krasovskyy)
 34. Top 10 drivers for each month by total trip distance? (Mykytyshyn)
