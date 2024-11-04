@@ -9,7 +9,8 @@ from data_analysis.trip_data_analysis import (count_short_trips,
                                               jfk_airport_trips_with_four_passengers,
                                               trip_amounts_distribution_by_vendor,
                                               average_trip_speed_by_month,
-                                              passenger_count_distribution)
+                                              passenger_count_distribution,
+                                              passenger_count_distribution_ranked)
 
 
 class TripDataAnalysisTests(unittest.TestCase):
@@ -159,6 +160,25 @@ class TripDataAnalysisTests(unittest.TestCase):
         expected_df = self.spark.createDataFrame(expected_data, result_columns)
 
         actual_df = passenger_count_distribution(df)
+
+        assertDataFrameEqual(actual_df, expected_df)
+
+    def test_passenger_count_distribution_ranked(self):
+        data = [
+            (1, 2.2), (2, 32.49), (1, 0.99), (3, 6.71), (2, 12), (1, 6.79)
+        ]
+        columns = [c.passenger_count, c.trip_distance]
+        df = self.spark.createDataFrame(data, columns)
+
+        expected_data = [
+            (1, 3, 1),  # Passenger count 1 has 3 trips, rank 1
+            (2, 2, 2),  # Passenger count 2 has 2 trips, rank 2
+            (3, 1, 3)  # Passenger count 3 has 1 trip, rank 3
+        ]
+        result_columns = [c.passenger_count, c.trip_distance, "trip_count", "rank"]
+        expected_df = self.spark.createDataFrame(expected_data, result_columns)
+
+        actual_df = passenger_count_distribution_ranked(df)
 
         assertDataFrameEqual(actual_df, expected_df)
 

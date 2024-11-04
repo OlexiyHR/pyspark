@@ -1,5 +1,6 @@
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, month, avg, count
+from pyspark.sql.functions import col, month, avg, count, rank
+from pyspark.sql.window import Window
 
 import columns as c
 
@@ -130,3 +131,30 @@ def passenger_count_distribution(df: DataFrame) -> DataFrame:
         >>> passenger_distribution = passenger_count_distribution(trip_data_df)
     """
     return df.groupBy(c.passenger_count).agg(count("*").alias("trip_count"))
+
+
+def passenger_count_distribution_ranked(df: DataFrame) -> DataFrame:
+    """
+    Calculates the distribution of the number of passengers per trip, ranked by trip count.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing trip data with a `passenger_count` column.
+
+    Returns:
+        DataFrame: A new DataFrame with passenger count, the number of trips for each count,
+                   and a rank based on trip frequency.
+
+    Examples:
+        >>> passenger_distribution_ranked = passenger_count_distribution_ranked(trip_data_df)
+    """
+    trip_count_name = "trip_count"
+    ranking_name = "ranking"
+
+    passenger_counts = (
+        df.groupBy(c.passenger_count)
+          .agg(count("*").alias(trip_count_name))
+    )
+
+    window_spec = Window.partitionBy(c.passenger_count).orderBy(col(trip_count_name).desc())
+
+    return passenger_counts.withColumn(ranking_name, rank().over(window_spec)).orderBy(ranking_name)
