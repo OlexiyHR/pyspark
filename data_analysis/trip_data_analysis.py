@@ -1,8 +1,11 @@
 from pyspark.sql import DataFrame
+from pyspark.sql import Window
+from pyspark.sql import functions as f
 from pyspark.sql.functions import col, month, avg, count, rank, dayofweek, hour, when
 from pyspark.sql.window import Window
 
 import columns as c
+import settings as s
 
 
 def count_short_trips(df: DataFrame) -> int:
@@ -19,7 +22,7 @@ def count_short_trips(df: DataFrame) -> int:
     Examples:
         >>> short_trips_count = count_short_trips(trip_data_df)
     """
-    return df.where(col(c.trip_distance) < 1).count()
+    return df.where(f.col(c.trip_distance) < 1).count()
 
 
 def count_large_group_trips(df: DataFrame) -> int:
@@ -36,7 +39,7 @@ def count_large_group_trips(df: DataFrame) -> int:
     Examples:
         >>> large_group_trips_count = count_large_group_trips(trip_data_df)
     """
-    return df.where(col(c.passenger_count) >= 6).count()
+    return df.where(f.col(c.passenger_count) >= 6).count()
 
 
 def count_medium_duration_trips(df: DataFrame) -> int:
@@ -52,8 +55,8 @@ def count_medium_duration_trips(df: DataFrame) -> int:
     Examples:
         >>> medium_duration_trips_count = count_medium_duration_trips(trip_data_df)
     """
-    return df.where((col(c.trip_time_in_secs) >= 1800)
-                     & (col(c.trip_time_in_secs) <= 3600)).count()
+    return df.where((f.col(c.trip_time_in_secs) >= 1800)
+                     & (f.col(c.trip_time_in_secs) <= 3600)).count()
 
 
 def jfk_airport_trips_with_four_passengers(df: DataFrame) -> DataFrame:
@@ -70,12 +73,118 @@ def jfk_airport_trips_with_four_passengers(df: DataFrame) -> DataFrame:
     Examples:
         >>> jfk_trips_with_four_passengers = jfk_airport_trips_with_four_passengers(trip_data_df)
     """
-    filtered_df = df.filter((col(c.passenger_count) == 4) & (col(c.rate_code) == 2))
+    filtered_df = df.filter((f.col(c.passenger_count) == 4) & (f.col(c.rate_code) == 2))
 
     # Drop the passenger_count and rate_code columns, as they are the same and known.
     return filtered_df.drop(c.passenger_count, c.rate_code)
 
 
+def top_10_drivers_by_between_ride_distance(df):
+    """
+    Select the top 10 taxi drivers with the biggest total distance driven between rides.
+
+    Note:
+        Question 30.
+        Distance in coordinates id converted to kilometers via haversine formula.
+
+    Args:
+        df (DataFrame): Trip data DataFrame to process.
+
+    Returns:
+        DataFrame: DataFrame with medallion, hack_license, total between-ride distance of top 10 drivers.
+                   Sorted in descending order.
+
+    Examples:
+        >>> top_10_drivers_df = top_10_drivers_by_between_ride_distance(df)
+    """
+    earth_radius_km = 6371.0
+
+    taxi_driver_window = Window.partitionBy(c.medallion, c.hack_license).orderBy(c.pickup_datetime)
+
+    lagged_dropoff_coordinates_df = (df.withColumn("prev_dropoff_longitude", f.lag(c.dropoff_longitude).over(taxi_driver_window))
+                                       .withColumn("prev_dropoff_latitude", f.lag(c.dropoff_latitude).over(taxi_driver_window))
+                                    )
+
+    df_with_radians = (lagged_dropoff_coordinates_df
+                       .withColumn("pickup_longitude_rad", f.radians(c.pickup_longitude))
+                       .withColumn("pickup_latitude_rad", f.radians(c.pickup_latitude))
+                       .withColumn("prev_dropoff_longitude_rad", f.radians("prev_dropoff_longitude"))
+                       .withColumn("prev_dropoff_latitude_rad", f.radians("prev_dropoff_latitude"))
+                      )
+
+    double_earth_radius_km_col = f.lit(2 * earth_radius_km)
+
+    df_with_haversine_distance = df_with_radians.withColumn(
+        "inter_ride_distance",
+        double_earth_radius_km_col
+        * f.asin(
+            f.sqrt(
+                f.pow(
+                    f.sin(
+                        (f.col("pickup_latitude_rad") - f.col("prev_dropoff_latitude_rad")) / 2
+                    ),
+                    2
+                )
+                + f.cos(f.col("pickup_latitude_rad"))
+                * f.cos(f.col("prev_dropoff_latitude_rad"))
+                * f.pow(
+                    f.sin(
+                        (f.col("pickup_longitude_rad") - f.col("prev_dropoff_longitude_rad")) / 2
+                    ),
+                    2
+                )
+            )
+        )
+    )
+
+    drivers_with_total_inter_ride_distance = (df_with_haversine_distance
+                                              .groupBy(c.medallion, c.hack_license)
+                                              .agg(f.sum("inter_ride_distance")
+                                              .alias("total_inter_ride_distance"))
+                                             )
+
+    top_10_drivers = drivers_with_total_inter_ride_distance.orderBy(f.desc("total_inter_ride_distance")).limit(10)
+
+    return top_10_drivers
+
+
+def get_driver_peak_load_days_in_december(df):
+    """
+    Find top 3 peak load days for each driver during December.
+
+    Note:
+        Question 33.
+
+    Args:
+        df (DataFrame): Trip data DataFrame to process .
+
+    Returns:
+        DataFrame: DataFrame with `medallion`, `hack_license`, `day`, and `trip_count`
+                   for top three peak load days in December.
+
+    Examples:
+        >>> ranked_trip_counts_df = get_driver_peak_load_days_in_december(df)
+    """
+    december_df = df.filter(f.month(c.pickup_datetime) == 12)
+
+    december_df = december_df.withColumn("day", f.to_date("pickup_datetime"))
+
+    driver_hourly_trip_counts = (december_df
+                                 .groupBy(c.medallion, c.hack_license, "day")
+                                 .agg(f.count("*").alias("trip_count"))
+                                )
+
+    driver_window = Window.partitionBy(c.medallion, c.hack_license).orderBy(f.desc("trip_count"))
+
+    ranked_trip_counts = (driver_hourly_trip_counts
+                          .withColumn("rank", f.rank().over(driver_window))
+                          .filter(f.col("rank").isin(1, 2, 3))
+                          .select(c.medallion, c.hack_license, "day", "trip_count")
+                         )
+
+    return ranked_trip_counts
+
+  
 def trip_amounts_distribution_by_vendor(df: DataFrame) -> DataFrame:
     """
         Groups the trips by vendor ID and counts the rows for each vendor.

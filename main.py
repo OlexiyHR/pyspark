@@ -1,3 +1,5 @@
+import os
+
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
@@ -8,6 +10,8 @@ from read_write import read_fare_data_df, write_fare_data_df_to_csv, read_trip_d
 from data_postprocessing import fare_data_postprocessing as fare_proc, trip_data_postprocessing as trip_proc
 from data_cleaning.remove_duplicates import remove_duplicates
 from data_cleaning.clean_trip_data import fill_null_trip_data
+import data_analysis.fare_data_analysis as fda
+import data_analysis.trip_data_analysis as tda
 import settings as s
 import columns as c
 
@@ -86,6 +90,87 @@ def main():
         sep=","
     )
 
+    os.makedirs(os.path.dirname(s.QUESTION21_WRITE_PATH), exist_ok=True)
+    os.makedirs(os.path.dirname(s.QUESTION22_WRITE_PATH), exist_ok=True)
+    os.makedirs(s.QUESTION23_WRITE_PATH, exist_ok=True)
+
+    os.makedirs(s.QUESTION1_1_WRITE_PATH, exist_ok=True)
+    os.makedirs(s.QUESTION1_2_WRITE_PATH, exist_ok=True)
+    os.makedirs(s.QUESTION1_3_WRITE_PATH, exist_ok=True)
+
+    os.makedirs(s.QUESTION2_1_WRITE_PATH, exist_ok=True)
+    os.makedirs(s.QUESTION2_2_WRITE_PATH, exist_ok=True)
+
+    os.makedirs(s.QUESTION12_WRITE_PATH, exist_ok=True)
+
+    evening_rides_with_high_total_amount_count = fda.count_evening_rides_with_high_total_amount(fare_data_df)
+    with open(s.QUESTION21_WRITE_PATH, "w") as f:
+        f.write(str(evening_rides_with_high_total_amount_count))
+
+    cash_tips_above_average_count = fda.count_cash_tips_above_average(fare_data_df)
+    with open(s.QUESTION22_WRITE_PATH, "w") as f:
+        f.write(str(cash_tips_above_average_count))
+
+    weekday_credit_card_trips_with_high_tips = fda.filter_weekday_credit_card_trips_with_high_tips(fare_data_df)
+    write_fare_data_df_to_csv(
+        df=weekday_credit_card_trips_with_high_tips,
+        write_folder_path=s.QUESTION23_WRITE_PATH,
+        num_files=s.WRITE_PARTITION,
+        header=True,
+        sep=","
+    )
+
+    top_10_by_trips_df, top_10_by_trip_income_df, top_10_by_tips_df = fda.top_10_successful_drivers(fare_data_df)
+    write_fare_data_df_to_csv(
+        df=top_10_by_trips_df,
+        write_folder_path=s.QUESTION1_1_WRITE_PATH,
+        num_files=s.WRITE_PARTITION,
+        header=True,
+        sep=","
+    )
+
+    write_fare_data_df_to_csv(
+        df=top_10_by_trip_income_df,
+        write_folder_path=s.QUESTION1_2_WRITE_PATH,
+        num_files=s.WRITE_PARTITION,
+        header=True,
+        sep=","
+    )
+
+    write_fare_data_df_to_csv(
+        df=top_10_by_tips_df,
+        write_folder_path=s.QUESTION1_3_WRITE_PATH,
+        num_files=s.WRITE_PARTITION,
+        header=True,
+        sep=","
+    )
+
+    month_profit_df, day_of_week_profit_df = fda.most_profitable_months_and_days(fare_data_df)
+    write_fare_data_df_to_csv(
+        df=month_profit_df,
+        write_folder_path=s.QUESTION2_1_WRITE_PATH,
+        num_files=s.WRITE_PARTITION,
+        header=True,
+        sep=","
+    )
+
+    write_fare_data_df_to_csv(
+        df=day_of_week_profit_df,
+        write_folder_path=s.QUESTION2_2_WRITE_PATH,
+        num_files=s.WRITE_PARTITION,
+        header=True,
+        sep=","
+    )
+
+    mta_taxes_df = fda.monthly_mta_tax_by_vendor(fare_data_df)
+    write_fare_data_df_to_csv(
+        df=mta_taxes_df,
+        write_folder_path=s.QUESTION12_WRITE_PATH,
+        num_files=s.WRITE_PARTITION,
+        header=True,
+        sep=","
+    )
+
     trip_data_df = read_trip_data_df(
         spark_session=spark_session,
         dataframe_path=s.TRIP_DATA_READ_DIRECTORY_PATH,
@@ -103,6 +188,27 @@ def main():
     trip_data_df = trip_proc.remove_invalid_rows(trip_data_df)
 
     trip_data_df = trip_proc.transform_store_and_fwd_flag_to_bool(trip_data_df)
+
+    os.makedirs(s.QUESTION30_WRITE_PATH, exist_ok=True)
+    os.makedirs(s.QUESTION33_WRITE_PATH, exist_ok=True)
+
+    top_10_drivers_df = tda.top_10_drivers_by_between_ride_distance(trip_data_df)
+    write_trip_data_df_to_csv(
+        df=top_10_drivers_df,
+        write_folder_path=s.QUESTION30_WRITE_PATH,
+        num_files=s.WRITE_PARTITION,
+        header=True,
+        sep=","
+    )
+
+    ranked_trip_counts_df = tda.get_driver_peak_load_days_in_december(trip_data_df)
+    write_trip_data_df_to_csv(
+        df=ranked_trip_counts_df,
+        write_folder_path=s.QUESTION33_WRITE_PATH,
+        num_files=s.WRITE_PARTITION,
+        header=True,
+        sep=","
+    )
 
     write_trip_data_df_to_csv(
         df=trip_data_df,
