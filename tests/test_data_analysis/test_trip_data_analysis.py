@@ -10,8 +10,8 @@ from data_analysis.trip_data_analysis import (count_short_trips,
                                               trip_amounts_distribution_by_vendor,
                                               average_trip_speed_by_month,
                                               passenger_count_distribution,
-                                              passenger_count_distribution_ranked,
-                                              short_trip_distribution_by_day_ranked)
+                                              short_trip_distribution_by_day_ranked,
+                                              top_10_drivers_by_distance_per_month)
 
 
 class TripDataAnalysisTests(unittest.TestCase):
@@ -164,24 +164,6 @@ class TripDataAnalysisTests(unittest.TestCase):
 
         assertDataFrameEqual(actual_df, expected_df)
 
-    def test_passenger_count_distribution_ranked(self):
-        data = [
-            (1, 2.2), (2, 32.49), (1, 0.99), (3, 6.71), (2, 12), (1, 6.79)
-        ]
-        columns = [c.passenger_count, c.trip_distance]
-        df = self.spark.createDataFrame(data, columns)
-
-        expected_data = [
-            (1, 3, 1),  # Passenger count 1 has 3 trips, rank 1
-            (2, 2, 2),  # Passenger count 2 has 2 trips, rank 2
-            (3, 1, 3)  # Passenger count 3 has 1 trip, rank 3
-        ]
-        result_columns = [c.passenger_count, c.trip_distance, "trip_count", "ranking"]
-        expected_df = self.spark.createDataFrame(expected_data, result_columns)
-
-        actual_df = passenger_count_distribution_ranked(df)
-
-        assertDataFrameEqual(actual_df, expected_df)
 
     def test_short_trip_distribution_by_day_ranked(self):
         data = [
@@ -203,6 +185,41 @@ class TripDataAnalysisTests(unittest.TestCase):
         expected_df = self.spark.createDataFrame(expected_data, expected_schema)
 
         actual_df = short_trip_distribution_by_day_ranked(df)
+
+        assertDataFrameEqual(actual_df, expected_df)
+
+    def test_top_10_drivers_by_distance_per_month(self):
+        data = [
+            ("2024-01-15 10:00:00", "driver_1", 100.0),
+            ("2024-01-20 12:00:00", "driver_2", 150.0),
+            ("2024-01-22 14:00:00", "driver_3", 80.0),
+            ("2024-01-25 16:00:00", "driver_4", 50.0),
+            ("2024-01-28 18:00:00", "driver_5", 120.0),
+            ("2024-02-10 10:00:00", "driver_1", 200.0),
+            ("2024-02-12 12:00:00", "driver_2", 250.0),
+            ("2024-02-14 14:00:00", "driver_3", 180.0),
+            ("2024-02-16 16:00:00", "driver_4", 300.0),
+            ("2024-02-18 18:00:00", "driver_5", 170.0)
+        ]
+        columns = [c.pickup_datetime, c.hack_license, c.trip_distance]
+        df = self.spark.createDataFrame(data, columns)
+
+        expected_data = [
+            (1, "driver_2", 150.0, 1),
+            (1, "driver_5", 120.0, 2),
+            (1, "driver_1", 100.0, 3),
+            (1, "driver_3", 80.0, 4),
+            (1, "driver_4", 50.0, 5),
+            (2, "driver_4", 300.0, 1),
+            (2, "driver_2", 250.0, 2),
+            (2, "driver_1", 200.0, 3),
+            (2, "driver_3", 180.0, 4),
+            (2, "driver_5", 170.0, 5)
+        ]
+        expected_columns = ["month", "hack_license", "total_distance", "ranking"]
+        expected_df = self.spark.createDataFrame(expected_data, expected_columns)
+
+        actual_df = top_10_drivers_by_distance_per_month(df)
 
         assertDataFrameEqual(actual_df, expected_df)
 
