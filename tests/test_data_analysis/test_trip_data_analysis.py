@@ -11,7 +11,8 @@ from data_analysis.trip_data_analysis import (count_short_trips,
                                               average_trip_speed_by_month,
                                               passenger_count_distribution,
                                               short_trip_distribution_by_day_ranked,
-                                              top_10_drivers_by_distance_per_month)
+                                              top_10_drivers_by_distance_per_month,
+                                              passenger_count_by_time_of_day)
 
 
 class TripDataAnalysisTests(unittest.TestCase):
@@ -222,6 +223,24 @@ class TripDataAnalysisTests(unittest.TestCase):
         actual_df = top_10_drivers_by_distance_per_month(df)
 
         assertDataFrameEqual(actual_df, expected_df)
+
+
+    def test_passenger_count_by_time_of_day(self):
+        data = [
+            ("2023-12-01 07:00:00", 2),  # Morning
+            ("2023-10-02 13:00:00", 3),  # Afternoon
+            ("2023-09-03 20:00:00", 1),  # Evening
+            ("2023-08-04 23:00:00", 4),  # Evening
+        ]
+        columns = ["pickup_datetime", "passenger_count"]
+        df = self.spark.createDataFrame(data, columns)
+
+        result_df = passenger_count_by_time_of_day(df)
+        result = {row.time_of_day: row.average_passenger_count for row in result_df.collect()}
+
+        self.assertAlmostEqual(result["morning"], 2.0, places=2)
+        self.assertAlmostEqual(result["afternoon"], 3.0, places=2)
+        self.assertAlmostEqual(result["evening"], 2.5, places=2)
 
 
 if __name__ == "__main__":

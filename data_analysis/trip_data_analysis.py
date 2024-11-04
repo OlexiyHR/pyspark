@@ -1,5 +1,5 @@
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, month, avg, count, rank, dayofweek
+from pyspark.sql.functions import col, month, avg, count, rank, dayofweek, hour, when
 from pyspark.sql.window import Window
 
 import columns as c
@@ -197,3 +197,28 @@ def top_10_drivers_by_distance_per_month(df: DataFrame) -> DataFrame:
         .filter(col(ranking_column_name) <= 10)
         .orderBy(month_column_name, ranking_column_name)
     )
+
+
+def passenger_count_by_time_of_day(df: DataFrame) -> DataFrame:
+    """
+    Calculates the average number of passengers for different times of the day.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing trip data.
+
+    Returns:
+        DataFrame: A new DataFrame with time of day intervals and the average passenger count.
+
+    Examples:
+        >>> avg_passenger_count = passenger_count_by_time_of_day(trip_data_df)
+    """
+    df_with_time_of_day = df.withColumn(
+        "time_of_day",
+        when((hour(c.pickup_datetime) >= 6) & (hour(c.pickup_datetime) < 12), "morning")
+        .when((hour(c.pickup_datetime) >= 12) & (hour(c.pickup_datetime) < 18), "afternoon")
+        .when((hour(c.pickup_datetime) >= 18) & (hour(c.pickup_datetime) < 24), "evening")
+        .otherwise("night")
+    )
+
+    return df_with_time_of_day.groupBy("time_of_day").agg(
+        avg(c.pickup_datetime).alias("average_passenger_count")).orderBy("time_of_day")
