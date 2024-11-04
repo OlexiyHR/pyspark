@@ -1,5 +1,8 @@
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, month, avg, count, rank, dayofweek
+from pyspark.sql.functions import (
+    col, month, avg, count, rank, sum, dayofweek, hour, when, to_date, desc, lag,
+    radians, lit, asin, sin, sqrt, cos
+)
 from pyspark.sql.window import Window
 
 import columns as c
@@ -76,6 +79,112 @@ def jfk_airport_trips_with_four_passengers(df: DataFrame) -> DataFrame:
     return filtered_df.drop(c.passenger_count, c.rate_code)
 
 
+def top_10_drivers_by_between_ride_distance(df):
+    """
+    Select the top 10 taxi drivers with the biggest total distance driven between rides.
+
+    Note:
+        Question 30.
+        Distance in coordinates id converted to kilometers via haversine formula.
+
+    Args:
+        df (DataFrame): Trip data DataFrame to process.
+
+    Returns:
+        DataFrame: DataFrame with medallion, hack_license, total between-ride distance of top 10 drivers.
+                   Sorted in descending order.
+
+    Examples:
+        >>> top_10_drivers_df = top_10_drivers_by_between_ride_distance(df)
+    """
+    earth_radius_km = 6371.0
+
+    taxi_driver_window = Window.partitionBy(c.medallion, c.hack_license).orderBy(c.pickup_datetime)
+
+    lagged_dropoff_coordinates_df = (df.withColumn("prev_dropoff_longitude", lag(c.dropoff_longitude).over(taxi_driver_window))
+                                       .withColumn("prev_dropoff_latitude", lag(c.dropoff_latitude).over(taxi_driver_window))
+                                    )
+
+    df_with_radians = (lagged_dropoff_coordinates_df
+                       .withColumn("pickup_longitude_rad", radians(c.pickup_longitude))
+                       .withColumn("pickup_latitude_rad", radians(c.pickup_latitude))
+                       .withColumn("prev_dropoff_longitude_rad", radians("prev_dropoff_longitude"))
+                       .withColumn("prev_dropoff_latitude_rad", radians("prev_dropoff_latitude"))
+                      )
+
+    double_earth_radius_km_col = lit(2 * earth_radius_km)
+
+    df_with_haversine_distance = df_with_radians.withColumn(
+        "inter_ride_distance",
+        double_earth_radius_km_col
+        * asin(
+            sqrt(
+                pow(
+                    sin(
+                        (col("pickup_latitude_rad") - col("prev_dropoff_latitude_rad")) / 2
+                    ),
+                    2
+                )
+                + cos(col("pickup_latitude_rad"))
+                * cos(col("prev_dropoff_latitude_rad"))
+                * pow(
+                    sin(
+                        (col("pickup_longitude_rad") - col("prev_dropoff_longitude_rad")) / 2
+                    ),
+                    2
+                )
+            )
+        )
+    )
+
+    drivers_with_total_inter_ride_distance = (df_with_haversine_distance
+                                              .groupBy(c.medallion, c.hack_license)
+                                              .agg(sum("inter_ride_distance")
+                                              .alias("total_inter_ride_distance"))
+                                             )
+
+    top_10_drivers = drivers_with_total_inter_ride_distance.orderBy(desc("total_inter_ride_distance")).limit(10)
+
+    return top_10_drivers
+
+
+def get_driver_peak_load_days_in_december(df):
+    """
+    Find top 3 peak load days for each driver during December.
+
+    Note:
+        Question 33.
+
+    Args:
+        df (DataFrame): Trip data DataFrame to process .
+
+    Returns:
+        DataFrame: DataFrame with `medallion`, `hack_license`, `day`, and `trip_count`
+                   for top three peak load days in December.
+
+    Examples:
+        >>> ranked_trip_counts_df = get_driver_peak_load_days_in_december(df)
+    """
+    december_df = df.filter(month(c.pickup_datetime) == 12)
+
+    december_df = december_df.withColumn("day", to_date("pickup_datetime"))
+
+    driver_hourly_trip_counts = (december_df
+                                 .groupBy(c.medallion, c.hack_license, "day")
+                                 .agg(count("*").alias("trip_count"))
+                                )
+
+    driver_window = Window.partitionBy(c.medallion, c.hack_license).orderBy(desc("trip_count"))
+
+    ranked_trip_counts = (driver_hourly_trip_counts
+                          .withColumn("rank", rank().over(driver_window))
+                          .filter(col("rank").isin(1, 2, 3))
+                          .select(c.medallion, c.hack_license, "day", "trip_count")
+                         )
+
+    return ranked_trip_counts
+
+  
 def trip_amounts_distribution_by_vendor(df: DataFrame) -> DataFrame:
     """
         Groups the trips by vendor ID and counts the rows for each vendor.
@@ -152,7 +261,7 @@ def short_trip_distribution_by_day_ranked(df: DataFrame) -> DataFrame:
 
     # 3 km ~ 1.864 miles
     three_km_in_miles = 1.864
-    short_trips_df = df.filter(col(c.trip_distance) < three_km_in_miles)
+    short_trips_df = df.where(col(c.trip_distance) < three_km_in_miles)
 
     short_trips_df = short_trips_df.withColumn(day_of_week_name, dayofweek(c.pickup_datetime))
 
@@ -197,3 +306,28 @@ def top_10_drivers_by_distance_per_month(df: DataFrame) -> DataFrame:
         .filter(col(ranking_column_name) <= 10)
         .orderBy(month_column_name, ranking_column_name)
     )
+
+
+def passenger_count_by_time_of_day(df: DataFrame) -> DataFrame:
+    """
+    Calculates the average number of passengers for different times of the day.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing trip data.
+
+    Returns:
+        DataFrame: A new DataFrame with time of day intervals and the average passenger count.
+
+    Examples:
+        >>> avg_passenger_count = passenger_count_by_time_of_day(trip_data_df)
+    """
+    df_with_time_of_day = df.withColumn(
+        "time_of_day",
+        when((hour(c.pickup_datetime) >= 6) & (hour(c.pickup_datetime) < 12), "morning")
+        .when((hour(c.pickup_datetime) >= 12) & (hour(c.pickup_datetime) < 18), "afternoon")
+        .when((hour(c.pickup_datetime) >= 18) & (hour(c.pickup_datetime) < 24), "evening")
+        .otherwise("night")
+    )
+
+    return df_with_time_of_day.groupBy("time_of_day").agg(
+        avg(c.pickup_datetime).alias("average_passenger_count")).orderBy("time_of_day")

@@ -2,8 +2,12 @@
 Module for functions that implement analysis of trip fare data.
 """
 
+
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as f
+import pyspark.sql.types as t
+from pyspark.sql.window import Window
+
 import columns as c
 
 
@@ -123,3 +127,188 @@ def count_expensive_trips(df: DataFrame) -> int:
         >>> expensive_trips_count = count_expensive_trips(fare_data_df)
     """
     return df.where(f.col(c.total_amount) >= 50).count()
+
+
+def top_10_successful_drivers(df):
+    """
+    Identify the 10 most successful taxi drivers by their:
+    1. Total number of trips.
+    2. Total income of trips.
+    3. Total tips received.
+
+    Notes:
+        Question 1.
+
+    Args:
+        df (DataFrame): Fare data DataFrame to process.
+
+    Returns:
+        Tuple[DataFrame, DataFrame, DataFrame]: DataFrames of top 10 drivers based on total trips, trip income, and tips.
+
+    Examples:
+        >>> top_10_by_trips_df, top_10_by_trip_income_df, top_10_by_tips_df = top_10_successful_drivers(df)
+    """
+    drivers_summary_df = (
+        df.groupBy(c.medallion, c.hack_license)
+        .agg(
+            f.count("*").alias("total_trips"),
+            f.sum(c.total_amount).alias("total_trip_cost"),
+            f.sum(c.tip_amount).alias("total_tips")
+        )
+    )
+
+    top_10_by_trips = drivers_summary_df.orderBy(f.desc("total_trips")).select(c.medallion, c.hack_license, "total_trips").limit(10)
+    top_10_by_trip_income = drivers_summary_df.orderBy(f.desc("total_trip_cost")).select(c.medallion, c.hack_license, "total_trip_cost").limit(10)
+    top_10_by_tips = drivers_summary_df.orderBy(f.desc("total_tips")).select(c.medallion, c.hack_license, "total_tips").limit(10)
+
+    return top_10_by_trips, top_10_by_trip_income, top_10_by_tips
+
+
+def most_profitable_months_and_days(df):
+    """
+    Calculate the most profitable months and days of the week by total trip income.
+
+    Notes:
+        Question 2.
+
+    Args:
+        df (DataFrame): Fare data DataFrame to process.
+
+    Returns:
+        Tuple[DataFrame, DataFrame]: DataFrames with trip costs for every month and day of the week.
+
+    Examples:
+        >>> month_profit_df, day_of_week_profit_df = most_profitable_months_and_days(df)
+    """
+    df = df.withColumn("month", f.month(c.pickup_datetime)).withColumn("day_of_week", f.dayofweek(c.pickup_datetime))
+
+    month_names = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June", 7: "July",
+                   8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
+    day_names = {1: "Sunday", 2: "Monday", 3: "Tuesday", 4: "Wednesday", 5: "Thursday", 6: "Friday", 7: "Saturday"}
+
+    month_name_udf = f.udf(lambda m: month_names.get(m, "Unknown"), t.StringType())
+    day_name_udf = f.udf(lambda d: day_names.get(d, "Unknown"), t.StringType())
+
+    df = (df.withColumn("month_name", month_name_udf(f.col("month")))
+            .withColumn("day_name", day_name_udf(f.col("day_of_week")))
+         )
+
+    month_profit = df.groupBy("month_name").agg(f.sum(c.total_amount).alias("total_trip_cost")).orderBy(
+        f.desc("total_trip_cost"))
+    day_of_week_profit = df.groupBy("day_name").agg(f.sum(c.total_amount).alias("total_trip_cost")).orderBy(
+        f.desc("total_trip_cost"))
+
+    return month_profit, day_of_week_profit
+
+
+def monthly_mta_tax_by_vendor(df):
+    """
+    Get mta tax paid by each vendor monthly.
+
+    Notes:
+        Question 12.
+
+    Args:
+        df (DataFrame): Fare data DataFrame to process.
+
+    Returns:
+        DataFrame: DataFrames with mta_tax total amount from each vendor monthly.
+
+    Examples:
+        >>> mta_taxes_df = monthly_mta_tax_by_vendor(df)
+    """
+    df_with_month = df.withColumn("month_name", f.date_format(f.col("pickup_datetime"), "MMMM"))
+
+    mta_taxes = (df_with_month
+                 .groupBy(c.vendor_id, "month_name")
+                 .agg(f.sum(c.mta_tax).alias("total_mta_tax"))
+                 .orderBy(f.desc("total_mta_tax"))
+                )
+
+    return mta_taxes
+
+
+def average_tip_by_payment_type(df: DataFrame) -> DataFrame:
+    """
+    Groups data by payment type and calculates the average tip amount.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing fare data.
+
+    Returns:
+        DataFrame: A new DataFrame with each payment type and the average tip amount.
+
+    Examples:
+        >>> avg_tips_by_payment = average_tip_by_payment_type(fare_data_df)
+    """
+    return df.groupBy(c.payment_type).agg(f.avg(c.tip_amount).alias("average_tip"))
+
+
+def vendor_with_highest_fare(df: DataFrame) -> DataFrame:
+    """
+    Groups data by vendor ID and calculates the total fare amount for each vendor,
+    returning the vendor with the highest total fare.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing fare data.
+
+    Returns:
+            DataFrame: A new DataFrame with vendor IDs and their total fare amounts, sorted in descending order.
+
+    Examples:
+        >>> top_vendor = vendor_with_highest_fare(fare_data_df)
+    """
+    return df.groupBy(c.vendor_id).agg(f.sum(c.fare_amount).alias("total_fare")).orderBy("total_fare", ascending=False)
+
+
+def cumulative_total_fare_on_july_4(df: DataFrame) -> DataFrame:
+    """
+    Calculates cumulative total fare for each driver on July 4.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing fare data.
+
+    Returns:
+        DataFrame: A new DataFrame with each driver's cumulative total fare on July 4.
+
+    Examples:
+        >>> cumulative_fares = cumulative_total_fare_on_july_4(fare_data_df)
+    """
+    july_4_data = df.filter(
+        (f.col(c.pickup_datetime) >= "2023-07-04 00:00:00") &
+        (f.col(c.pickup_datetime) <= "2023-07-04 23:59:59")
+    )
+
+    window_spec = Window.partitionBy(c.hack_license).orderBy(c.pickup_datetime)
+
+    return july_4_data.withColumn("cumulative_fare", f.sum(c.total_amount).over(window_spec))
+
+
+def top_5_drivers_by_trip_count_on_july_4(df: DataFrame) -> DataFrame:
+    """
+        Finds the top 5 drivers by trip count on July 4, with additional sorting by total fare amount.
+
+        Args:
+            df (DataFrame): Spark DataFrame containing trip data.
+
+        Returns:
+             DataFrame: A new DataFrame with the top 5 drivers by trip count and total fare on July 4.
+
+        Examples:
+            >>> top_drivers = top_5_drivers_by_trip_count_on_july_4(fare_data_df)
+    """
+    july_4_data = df.filter(
+        (f.col(c.pickup_datetime) >= "2023-07-04 00:00:00") &
+        (f.col(c.pickup_datetime) <= "2023-07-04 23:59:59")
+    )
+
+    aggregated_data = july_4_data.groupBy(c.hack_license).agg(
+        f.count("*").alias("trip_count"),
+        f.sum(c.total_amount).alias("total_fare")
+    )
+
+    window_spec = Window.orderBy(f.col("trip_count").desc(), f.col("total_fare").desc())
+
+    ranked_data = aggregated_data.withColumn("rank", f.row_number().over(window_spec))
+
+    return ranked_data.filter(f.col("rank") <= 5)
