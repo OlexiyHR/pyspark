@@ -1,6 +1,6 @@
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import (
-    col, month, avg, count, rank, dayofweek, hour, when, to_date, desc, lag,
+    col, month, avg, count, rank, sum, dayofweek, hour, when, to_date, desc, lag,
     radians, lit, asin, sin, sqrt, cos
 )
 from pyspark.sql.window import Window
@@ -261,7 +261,7 @@ def short_trip_distribution_by_day_ranked(df: DataFrame) -> DataFrame:
 
     # 3 km ~ 1.864 miles
     three_km_in_miles = 1.864
-    short_trips_df = df.filter(col(c.trip_distance) < three_km_in_miles)
+    short_trips_df = df.where(col(c.trip_distance) < three_km_in_miles)
 
     short_trips_df = short_trips_df.withColumn(day_of_week_name, dayofweek(c.pickup_datetime))
 
