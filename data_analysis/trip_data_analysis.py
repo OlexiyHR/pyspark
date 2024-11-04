@@ -1,5 +1,5 @@
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, month, avg, count, rank
+from pyspark.sql.functions import col, month, avg, count, rank, dayofweek
 from pyspark.sql.window import Window
 
 import columns as c
@@ -158,3 +158,36 @@ def passenger_count_distribution_ranked(df: DataFrame) -> DataFrame:
     window_spec = Window.partitionBy(c.passenger_count).orderBy(col(trip_count_name).desc())
 
     return passenger_counts.withColumn(ranking_name, rank().over(window_spec)).orderBy(ranking_name)
+
+
+def short_trip_distribution_by_day_ranked(df: DataFrame) -> DataFrame:
+    """
+    Calculates the distribution of short trips (< 3 km) by day, ranked by trip count.
+
+    Args:
+        df (DataFrame): Spark DataFrame containing trip data with `pickup_datetime` and `trip_distance`.
+
+    Returns:
+        DataFrame: A new DataFrame with day, the count of short trips for each day, and a rank based on trip frequency.
+
+    Examples:
+        >>> short_trip_distribution = short_trip_distribution_by_day_ranked(trip_data_df)
+    """
+    day_of_week_name = "day_of_week"
+    short_trip_count_name = "short_trip_count"
+    ranking_name = "ranking"
+
+    # 3 km ~ 1.864 miles
+    three_km_in_miles = 1.864
+    short_trips_df = df.filter(col(c.trip_distance) < three_km_in_miles)
+
+    short_trips_df = short_trips_df.withColumn(day_of_week_name, dayofweek(c.pickup_datetime))
+
+    daily_short_trip_counts = (
+        short_trips_df.groupBy(day_of_week_name)
+        .agg(count("*").alias(short_trip_count_name))
+    )
+
+    window_spec = Window.orderBy(col(short_trip_count_name).desc())
+
+    return daily_short_trip_counts.withColumn(ranking_name, rank().over(window_spec)).orderBy(ranking_name)
