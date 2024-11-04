@@ -1,7 +1,7 @@
 """
 Module for functions that implement analysis of trip fare data.
 """
-
+from itertools import groupby
 
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as f
@@ -182,3 +182,27 @@ def most_profitable_months_and_days(df):
 
     return month_profit, day_of_week_profit
 
+
+def mta_tax_by_vendor(df):
+    """
+    Get mta tax paid by each vendor monthly.
+
+    Notes:
+        Question 12.
+
+    Args:
+        df (DataFrame): Fare data DataFrame to process.
+
+    Returns:
+        DataFrame: DataFrames with mta_tax total amount from each vendor monthly.
+
+    """
+    df_with_month = df.withColumn("month", f.date_format(f.col("pickup_datetime"), "MMMM"))
+
+    mta_taxes = (df_with_month
+                 .groupBy(c.vendor_id, "month")
+                 .agg(f.sum(c.mta_tax).alias("total_mta_tax"))
+                 .orderBy(f.desc(c.vendor_id, "month", "total_mta_tax"))
+                )
+
+    return mta_taxes
