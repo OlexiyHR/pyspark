@@ -127,30 +127,58 @@ def count_expensive_trips(df: DataFrame) -> int:
 
 def top_10_successful_drivers(df):
     """
-    Identify the 10 most successful taxi drivers by his:
+    Identify the 10 most successful taxi drivers by their:
     1. Total number of trips.
-    2. Total cost of trips.
+    2. Total income of trips.
     3. Total tips received.
+
+    Notes:
+        Question 1.
 
     Args:
         df (DataFrame): Fare data DataFrame to process.
 
     Returns:
-        DataFrame: DataFrame of top 10 drivers based on total trips, trip cost, and tips.
+        Tuple[DataFrame, DataFrame, DataFrame]: DataFrames of top 10 drivers based on total trips, trip income, and tips.
+
+    Examples:
+        >>> top_10_by_trips_df, top_10_by_trip_income_df, top_10_by_tips_df = top_10_successful_drivers(df)
     """
     drivers_summary_df = (
-        df.groupBy("medallion", "hack_license")
+        df.groupBy(c.medallion, c.hack_license)
         .agg(
             f.count("*").alias("total_trips"),
-            f.sum("total_amount").alias("total_trip_cost"),
-            f.sum("tip_amount").alias("total_tips")
+            f.sum(c.total_amount).alias("total_trip_cost"),
+            f.sum(c.tip_amount).alias("total_tips")
         )
     )
 
-    top_10_by_trips = drivers_summary_df.orderBy(f.desc("total_trips")).select("medallion", "hack_license", "total_trips").limit(10)
-    top_10_by_trip_income = drivers_summary_df.orderBy(f.desc("total_trip_cost")).select("medallion", "hack_license", "total_trip_cost").limit(10)
-    top_10_by_tips = drivers_summary_df.orderBy(f.desc("total_tips")).select("medallion", "hack_license", "total_tips").limit(10)
+    top_10_by_trips = drivers_summary_df.orderBy(f.desc("total_trips")).select(c.medallion, c.hack_license, "total_trips").limit(10)
+    top_10_by_trip_income = drivers_summary_df.orderBy(f.desc("total_trip_cost")).select(c.medallion, c.hack_license, "total_trip_cost").limit(10)
+    top_10_by_tips = drivers_summary_df.orderBy(f.desc("total_tips")).select(c.medallion, c.hack_license, "total_tips").limit(10)
 
     return top_10_by_trips, top_10_by_trip_income, top_10_by_tips
 
+
+def most_profitable_months_and_days(df):
+    """
+    Calculate the most profitable months and days of the week by total trip income.
+
+    Notes:
+        Question 2.
+
+    Args:
+        df (DataFrame): Fare data DataFrame to process.
+
+    Returns:
+        Tuple[DataFrame, DataFrame]: DataFrames with trip costs for every month and day of the week.
+    """
+    df = df.withColumn("month", f.month(c.pickup_datetime)).withColumn("day_of_week", f.dayofweek(c.pickup_datetime))
+
+    month_profit = df.groupBy("month").agg(f.sum(c.total_amount).alias("total_trip_cost")).orderBy(
+        f.desc("total_trip_cost"))
+    day_of_week_profit = df.groupBy("day_of_week").agg(f.sum(c.total_amount).alias("total_trip_cost")).orderBy(
+        f.desc("total_trip_cost"))
+
+    return month_profit, day_of_week_profit
 
