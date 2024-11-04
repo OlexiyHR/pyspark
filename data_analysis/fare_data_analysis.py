@@ -183,7 +183,7 @@ def most_profitable_months_and_days(df):
     return month_profit, day_of_week_profit
 
 
-def mta_tax_by_vendor(df):
+def monthly_mta_tax_by_vendor(df):
     """
     Get mta tax paid by each vendor monthly.
 
