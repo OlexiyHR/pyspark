@@ -176,7 +176,7 @@ def main():
     write_question_results(ranked_trip_counts_df, 33)
 
     # Oleksii
-    expensive_trips = fda.count_expensive_trips(trip_data_df)
+    expensive_trips = fda.count_expensive_trips(fare_data_df)
     write_question_results(expensive_trips, 27)
 
     medium_duration_trips = tda.count_medium_duration_trips(trip_data_df)
@@ -185,19 +185,19 @@ def main():
     jfk_airport_trips_with_four_passengers = tda.jfk_airport_trips_with_four_passengers(trip_data_df)
     write_question_results(jfk_airport_trips_with_four_passengers, 29)
 
-    average_tip_by_payment_type = fda.average_tip_by_payment_type(trip_data_df)
+    average_tip_by_payment_type = fda.average_tip_by_payment_type(fare_data_df)
     write_question_results(average_tip_by_payment_type, 8)
 
-    vendor_with_highest_fare = fda.vendor_with_highest_fare(trip_data_df)
+    vendor_with_highest_fare = fda.vendor_with_highest_fare(fare_data_df)
     write_question_results(vendor_with_highest_fare, 11)
 
     passenger_count_by_time_of_day = tda.passenger_count_by_time_of_day(trip_data_df)
     write_question_results(passenger_count_by_time_of_day, 16)
 
-    cumulative_total_fare_on_july_4 = fda.cumulative_total_fare_on_july_4(trip_data_df)
+    cumulative_total_fare_on_july_4 = fda.cumulative_total_fare_on_july_4(fare_data_df)
     write_question_results(cumulative_total_fare_on_july_4, 31)
 
-    top_5_drivers_by_trip_count_on_july_4 = fda.top_5_drivers_by_trip_count_on_july_4(trip_data_df)
+    top_5_drivers_by_trip_count_on_july_4 = fda.top_5_drivers_by_trip_count_on_july_4(fare_data_df)
     write_question_results(top_5_drivers_by_trip_count_on_july_4, 32)
 
     spark_session.stop()
