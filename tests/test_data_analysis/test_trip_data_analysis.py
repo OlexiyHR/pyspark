@@ -12,7 +12,7 @@ from data_analysis.trip_data_analysis import (count_short_trips,
                                               passenger_count_distribution,
                                               short_trip_distribution_by_day_ranked,
                                               top_10_drivers_by_distance_per_month,
-                                              passenger_count_by_time_of_day)
+                                              passenger_count_by_time_of_day, get_driver_peak_load_days_in_december)
 
 
 class TripDataAnalysisTests(unittest.TestCase):
@@ -224,7 +224,6 @@ class TripDataAnalysisTests(unittest.TestCase):
 
         assertDataFrameEqual(actual_df, expected_df)
 
-
     def test_passenger_count_by_time_of_day(self):
         data = [
             ("2023-12-01 07:00:00", 2),  # Morning
@@ -241,6 +240,41 @@ class TripDataAnalysisTests(unittest.TestCase):
         self.assertAlmostEqual(result["morning"], 2.0, places=2)
         self.assertAlmostEqual(result["afternoon"], 3.0, places=2)
         self.assertAlmostEqual(result["evening"], 2.5, places=2)
+
+    def test_get_driver_peak_load_days_in_december(self):
+            data = [
+                ("driver1", "license1", "2022-12-01 08:00:00"),
+                ("driver1", "license1", "2022-12-01 09:00:00"),
+                ("driver1", "license1", "2022-12-02 10:00:00"),
+                ("driver1", "license1", "2022-12-02 11:00:00"),
+                ("driver1", "license1", "2022-12-03 08:00:00"),
+                ("driver1", "license1", "2022-12-03 09:00:00"),
+                ("driver1", "license1", "2022-12-03 10:00:00"),
+                ("driver2", "license2", "2022-12-01 08:00:00"),
+                ("driver2", "license2", "2022-12-01 09:00:00"),
+                ("driver2", "license2", "2022-12-02 08:00:00"),
+                ("driver2", "license2", "2022-12-02 09:00:00"),
+                ("driver2", "license2", "2022-12-02 10:00:00"),
+            ]
+
+            df = self.spark.createDataFrame(data, ["medallion", "hack_license", "pickup_datetime"])
+
+            result_df = get_driver_peak_load_days_in_december(df)
+
+            expected_data = [
+                ("driver1", "license1", "2022-12-03", 3),
+                ("driver1", "license1", "2022-12-01", 2),
+                ("driver1", "license1", "2022-12-02", 2),
+                ("driver2", "license2", "2022-12-02", 3),
+                ("driver2", "license2", "2022-12-01", 2),
+            ]
+            expected_df = self.spark.createDataFrame(expected_data, ["medallion", "hack_license", "day", "trip_count"])
+
+            result_sorted = result_df.orderBy("medallion", "hack_license", "day")
+            expected_sorted = expected_df.orderBy("medallion", "hack_license", "day")
+
+            self.assertTrue(result_sorted.subtract(expected_sorted).isEmpty())
+            self.assertTrue(expected_sorted.subtract(result_sorted).isEmpty())
 
 
 if __name__ == "__main__":
