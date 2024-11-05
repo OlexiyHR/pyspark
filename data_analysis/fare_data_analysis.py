@@ -148,18 +148,40 @@ def top_10_successful_drivers(df):
     Examples:
         >>> top_10_by_trips_df, top_10_by_trip_income_df, top_10_by_tips_df = top_10_successful_drivers(df)
     """
+    total_trips_name = "total_trips"
+    total_trip_cost_name = "total_trip_cost"
+    total_tips_name = "total_tips"
+
     drivers_summary_df = (
-        df.groupBy(c.medallion, c.hack_license)
+        df
+        .groupBy(c.medallion, c.hack_license)
         .agg(
-            f.count("*").alias("total_trips"),
-            f.sum(c.total_amount).alias("total_trip_cost"),
-            f.sum(c.tip_amount).alias("total_tips")
+            f.count("*").alias(total_trips_name),
+            f.sum(c.total_amount).alias(total_trip_cost_name),
+            f.sum(c.tip_amount).alias(total_tips_name)
         )
     )
 
-    top_10_by_trips = drivers_summary_df.orderBy(f.desc("total_trips")).select(c.medallion, c.hack_license, "total_trips").limit(10)
-    top_10_by_trip_income = drivers_summary_df.orderBy(f.desc("total_trip_cost")).select(c.medallion, c.hack_license, "total_trip_cost").limit(10)
-    top_10_by_tips = drivers_summary_df.orderBy(f.desc("total_tips")).select(c.medallion, c.hack_license, "total_tips").limit(10)
+    top_10_by_trips = (
+        drivers_summary_df
+        .orderBy(f.desc(total_trips_name))
+        .select(c.medallion, c.hack_license, total_trips_name)
+        .limit(10)
+    )
+
+    top_10_by_trip_income = (
+        drivers_summary_df
+        .orderBy(f.desc(total_trip_cost_name))
+        .select(c.medallion, c.hack_license, total_trip_cost_name)
+        .limit(10)
+    )
+
+    top_10_by_tips = (
+        drivers_summary_df
+        .orderBy(f.desc(total_tips_name))
+        .select(c.medallion, c.hack_license, total_tips_name)
+        .limit(10)
+    )
 
     return top_10_by_trips, top_10_by_trip_income, top_10_by_tips
 
@@ -180,7 +202,17 @@ def most_profitable_months_and_days(df):
     Examples:
         >>> month_profit_df, day_of_week_profit_df = most_profitable_months_and_days(df)
     """
-    df = df.withColumn("month", f.month(c.pickup_datetime)).withColumn("day_of_week", f.dayofweek(c.pickup_datetime))
+    month_col = "month"
+    day_of_week_col = "day_of_week"
+    month_name_col = "month_name"
+    day_name_col = "day_name"
+    total_trip_cost_col = "total_trip_cost"
+
+    df = (
+        df
+        .withColumn(month_col, f.month(c.pickup_datetime))
+        .withColumn(day_of_week_col, f.dayofweek(c.pickup_datetime))
+    )
 
     month_names = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June", 7: "July",
                    8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
@@ -189,14 +221,25 @@ def most_profitable_months_and_days(df):
     month_name_udf = f.udf(lambda m: month_names.get(m, "Unknown"), t.StringType())
     day_name_udf = f.udf(lambda d: day_names.get(d, "Unknown"), t.StringType())
 
-    df = (df.withColumn("month_name", month_name_udf(f.col("month")))
-            .withColumn("day_name", day_name_udf(f.col("day_of_week")))
-         )
+    df = (
+        df
+        .withColumn(month_name_col, month_name_udf(f.col(month_col)))
+        .withColumn(day_name_col, day_name_udf(f.col(day_of_week_col)))
+    )
 
-    month_profit = df.groupBy("month_name").agg(f.sum(c.total_amount).alias("total_trip_cost")).orderBy(
-        f.desc("total_trip_cost"))
-    day_of_week_profit = df.groupBy("day_name").agg(f.sum(c.total_amount).alias("total_trip_cost")).orderBy(
-        f.desc("total_trip_cost"))
+    month_profit = (
+        df
+        .groupBy(month_name_col)
+        .agg(f.sum(c.total_amount).alias(total_trip_cost_col))
+        .orderBy(f.desc(total_trip_cost_col))
+    )
+
+    day_of_week_profit = (
+        df
+        .groupBy(day_name_col)
+        .agg(f.sum(c.total_amount).alias(total_trip_cost_col))
+        .orderBy(f.desc(total_trip_cost_col))
+    )
 
     return month_profit, day_of_week_profit
 
@@ -217,12 +260,15 @@ def monthly_mta_tax_by_vendor(df):
     Examples:
         >>> mta_taxes_df = monthly_mta_tax_by_vendor(df)
     """
-    df_with_month = df.withColumn("month_name", f.date_format(f.col("pickup_datetime"), "MMMM"))
+    month_name_col = "month_name"
+    total_mta_tax = "total_mta_tax"
+
+    df_with_month = df.withColumn(month_name_col, f.date_format(f.col("pickup_datetime"), "MMMM"))
 
     mta_taxes = (df_with_month
-                 .groupBy(c.vendor_id, "month_name")
-                 .agg(f.sum(c.mta_tax).alias("total_mta_tax"))
-                 .orderBy(f.desc("total_mta_tax"))
+                 .groupBy(c.vendor_id, month_name_col)
+                 .agg(f.sum(c.mta_tax).alias(total_mta_tax))
+                 .orderBy(f.desc(total_mta_tax))
                 )
 
     return mta_taxes
