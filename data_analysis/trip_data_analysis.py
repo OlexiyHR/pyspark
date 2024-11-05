@@ -99,37 +99,51 @@ def top_10_drivers_by_between_ride_distance(df):
     """
     earth_radius_km = 6371.0
 
+    prev_dropoff_longitude_name = "prev_dropoff_longitude"
+    prev_dropoff_latitude_name = "prev_dropoff_latitude"
+
+    pickup_longitude_rad_name = "pickup_longitude_rad"
+    pickup_latitude_rad_name = "pickup_latitude_rad"
+    prev_dropoff_longitude_rad_name = "prev_dropoff_longitude_rad"
+    prev_dropoff_latitude_rad_name = "prev_dropoff_latitude_rad"
+
+    inter_ride_distance_name = "inter_ride_distance"
+    total_inter_ride_distance_name = "total_inter_ride_distance"
+
     taxi_driver_window = Window.partitionBy(c.medallion, c.hack_license).orderBy(c.pickup_datetime)
 
-    lagged_dropoff_coordinates_df = (df.withColumn("prev_dropoff_longitude", lag(c.dropoff_longitude).over(taxi_driver_window))
-                                       .withColumn("prev_dropoff_latitude", lag(c.dropoff_latitude).over(taxi_driver_window))
-                                    )
+    lagged_dropoff_coordinates_df = (
+        df
+        .withColumn(prev_dropoff_longitude_name, lag(c.dropoff_longitude).over(taxi_driver_window))
+        .withColumn(prev_dropoff_latitude_name, lag(c.dropoff_latitude).over(taxi_driver_window))
+    )
 
-    df_with_radians = (lagged_dropoff_coordinates_df
-                       .withColumn("pickup_longitude_rad", radians(c.pickup_longitude))
-                       .withColumn("pickup_latitude_rad", radians(c.pickup_latitude))
-                       .withColumn("prev_dropoff_longitude_rad", radians("prev_dropoff_longitude"))
-                       .withColumn("prev_dropoff_latitude_rad", radians("prev_dropoff_latitude"))
-                      )
+    df_with_radians = (
+        lagged_dropoff_coordinates_df
+        .withColumn(pickup_longitude_rad_name, radians(c.pickup_longitude))
+        .withColumn(pickup_latitude_rad_name, radians(c.pickup_latitude))
+        .withColumn(prev_dropoff_longitude_rad_name, radians(prev_dropoff_longitude_name))
+        .withColumn(prev_dropoff_latitude_rad_name, radians(prev_dropoff_latitude_name))
+    )
 
     double_earth_radius_km_col = lit(2 * earth_radius_km)
 
     df_with_haversine_distance = df_with_radians.withColumn(
-        "inter_ride_distance",
+        inter_ride_distance_name,
         double_earth_radius_km_col
         * asin(
             sqrt(
                 pow(
                     sin(
-                        (col("pickup_latitude_rad") - col("prev_dropoff_latitude_rad")) / 2
+                        (col(pickup_latitude_rad_name) - col(prev_dropoff_latitude_rad_name)) / 2
                     ),
                     2
                 )
-                + cos(col("pickup_latitude_rad"))
-                * cos(col("prev_dropoff_latitude_rad"))
+                + cos(col(pickup_latitude_rad_name))
+                * cos(col(prev_dropoff_latitude_rad_name))
                 * pow(
                     sin(
-                        (col("pickup_longitude_rad") - col("prev_dropoff_longitude_rad")) / 2
+                        (col(pickup_longitude_rad_name) - col(prev_dropoff_longitude_rad_name)) / 2
                     ),
                     2
                 )
@@ -137,13 +151,14 @@ def top_10_drivers_by_between_ride_distance(df):
         )
     )
 
-    drivers_with_total_inter_ride_distance = (df_with_haversine_distance
-                                              .groupBy(c.medallion, c.hack_license)
-                                              .agg(sum("inter_ride_distance")
-                                              .alias("total_inter_ride_distance"))
-                                             )
+    drivers_with_total_inter_ride_distance = (
+        df_with_haversine_distance
+        .groupBy(c.medallion, c.hack_license)
+        .agg(sum(inter_ride_distance_name)
+        .alias(total_inter_ride_distance_name))
+    )
 
-    top_10_drivers = drivers_with_total_inter_ride_distance.orderBy(desc("total_inter_ride_distance")).limit(10)
+    top_10_drivers = drivers_with_total_inter_ride_distance.orderBy(desc(total_inter_ride_distance_name)).limit(10)
 
     return top_10_drivers
 
@@ -165,22 +180,28 @@ def get_driver_peak_load_days_in_december(df):
     Examples:
         >>> ranked_trip_counts_df = get_driver_peak_load_days_in_december(df)
     """
+    day_name = "day"
+    trip_count_name = "trip_count"
+    rank_name = "rank"
+
     december_df = df.filter(month(c.pickup_datetime) == 12)
 
-    december_df = december_df.withColumn("day", to_date("pickup_datetime"))
+    december_df = december_df.withColumn(day_name, to_date(c.pickup_datetime))
 
-    driver_hourly_trip_counts = (december_df
-                                 .groupBy(c.medallion, c.hack_license, "day")
-                                 .agg(count("*").alias("trip_count"))
-                                )
+    driver_hourly_trip_counts = (
+        december_df
+        .groupBy(c.medallion, c.hack_license, day_name)
+        .agg(count("*").alias(trip_count_name))
+    )
 
-    driver_window = Window.partitionBy(c.medallion, c.hack_license).orderBy(desc("trip_count"))
+    driver_window = Window.partitionBy(c.medallion, c.hack_license).orderBy(desc(trip_count_name))
 
-    ranked_trip_counts = (driver_hourly_trip_counts
-                          .withColumn("rank", rank().over(driver_window))
-                          .filter(col("rank").isin(1, 2, 3))
-                          .select(c.medallion, c.hack_license, "day", "trip_count")
-                         )
+    ranked_trip_counts = (
+        driver_hourly_trip_counts
+        .withColumn(rank_name, rank().over(driver_window))
+        .filter(col(rank_name).isin(1, 2, 3))
+        .select(c.medallion, c.hack_license, day_name, trip_count_name)
+    )
 
     return ranked_trip_counts
 
