@@ -290,6 +290,89 @@ class FareDataAnalysisTests(unittest.TestCase):
         self.assertTrue(diff_filtered.isEmpty())
         self.assertTrue(diff_expected.isEmpty())
 
+    def test_top_10_successful_drivers(self):
+        """Test top_10_successful_drivers() for identifying top drivers by trips, income, and tips."""
+
+        data = [
+            ("medallion_1", "license_1", 20.0, 5.0),
+            ("medallion_1", "license_1", 20.0, 5.0),
+            ("medallion_1", "license_1", 20.0, 120.0),
+            ("medallion_2", "license_2", 100.0, 25.0),
+            ("medallion_3", "license_3", 50.0, 10.0),
+            ("medallion_4", "license_4", 10.0, 3.0),
+            ("medallion_5", "license_5", 75.0, 15.0),
+            ("medallion_5", "license_5", 75.0, 15.0),
+            ("medallion_6", "license_6", 60.0, 18.0),
+            ("medallion_7", "license_7", 45.0, 12.0),
+            ("medallion_7", "license_7", 45.0, 12.0),
+            ("medallion_8", "license_8", 30.0, 6.0),
+            ("medallion_9", "license_9", 90.0, 20.0),
+            ("medallion_10", "license_10", 15.0, 4.0),
+            ("medallion_11", "license_11", 120.0, 30.0),
+            ("medallion_11", "license_11", 120.0, 30.0),
+            ("medallion_11", "license_11", 120.0, 30.0),
+            ("medallion_11", "license_11", 120.0, 30.0)
+        ]
+
+        columns = ["medallion", "hack_license", "total_amount", "tip_amount"]
+        df = self.spark.createDataFrame(data, schema=columns)
+
+        top_10_by_trips, top_10_by_trip_income, top_10_by_tips = fd_analysis.top_10_successful_drivers(df)
+
+        expected_by_trips = [
+            ("medallion_11", "license_11", 4),
+            ("medallion_1", "license_1", 3),
+            ("medallion_7", "license_7", 2),
+            ("medallion_5", "license_5", 2),
+            ("medallion_3", "license_3", 1),
+            ("medallion_6", "license_6", 1),
+            ("medallion_4", "license_4", 1),
+            ("medallion_2", "license_2", 1),
+            ("medallion_8", "license_8", 1),
+            ("medallion_10", "license_10", 1),
+        ]
+
+        expected_by_income = [
+            ("medallion_11", "license_11", 480.0),
+            ("medallion_5", "license_5", 150.0),
+            ("medallion_2", "license_2", 100.0),
+            ("medallion_7", "license_7", 90.0),
+            ("medallion_9", "license_9", 90.0),
+            ("medallion_6", "license_6", 60.0),
+            ("medallion_1", "license_1", 60.0),
+            ("medallion_3", "license_3", 50.0),
+            ("medallion_8", "license_8", 30.0),
+            ("medallion_10", "license_10", 15.0),
+        ]
+
+        expected_by_tips = [
+            ("medallion_1", "license_1", 130.0),
+            ("medallion_11", "license_11", 120.0),
+            ("medallion_5", "license_5", 30.0),
+            ("medallion_2", "license_2", 25.0),
+            ("medallion_7", "license_7", 24.0),
+            ("medallion_9", "license_9", 20.0),
+            ("medallion_6", "license_6", 18.0),
+            ("medallion_3", "license_3", 10.0),
+            ("medallion_8", "license_8", 6.0),
+            ("medallion_10", "license_10", 4.0),
+        ]
+
+        expected_by_trips_df = self.spark.createDataFrame(expected_by_trips,
+                                                          ["medallion", "hack_license", "total_trips"])
+        expected_by_income_df = self.spark.createDataFrame(expected_by_income,
+                                                           ["medallion", "hack_license", "total_trip_cost"])
+        expected_by_tips_df = self.spark.createDataFrame(expected_by_tips, ["medallion", "hack_license", "total_tips"])
+
+        self.assertTrue(top_10_by_trips.subtract(expected_by_trips_df).isEmpty())
+        self.assertTrue(expected_by_trips_df.subtract(top_10_by_trips).isEmpty())
+
+        self.assertTrue(top_10_by_trip_income.subtract(expected_by_income_df).isEmpty())
+        self.assertTrue(expected_by_income_df.subtract(top_10_by_trip_income).isEmpty())
+
+        self.assertTrue(top_10_by_tips.subtract(expected_by_tips_df).isEmpty())
+        self.assertTrue(expected_by_tips_df.subtract(top_10_by_tips).isEmpty())
+
     def test_most_profitable_months_and_days(self):
         """Test most_profitable_months_and_days() with month and day names."""
         data = [
