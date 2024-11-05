@@ -12,7 +12,8 @@ from data_analysis.trip_data_analysis import (count_short_trips,
                                               passenger_count_distribution,
                                               short_trip_distribution_by_day_ranked,
                                               top_10_drivers_by_distance_per_month,
-                                              passenger_count_by_time_of_day, get_driver_peak_load_days_in_december)
+                                              passenger_count_by_time_of_day,
+                                              get_driver_peak_load_days_in_december)
 
 
 class TripDataAnalysisTests(unittest.TestCase):
