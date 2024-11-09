@@ -17,7 +17,7 @@ Below is a list of 20 business questions that we would like to answer when worki
 7. Does the tip amount depend on the pickup / dropoff borough?
 8. How does the tipping amount depend on the payment type? (Hromiak)
 9. How does the tipping amount depend on the distance / duration / time of the day?
-10. Which rate codes are the most profitable?
+10. Which rate codes are the most profitable? (Krasovskyy)
 11. Which vendor has the highest fare? (Hromiak)
 12. How much MTA tax is paid by taxi operators each month? (Krasovskyy)
 13. Does payment type depend on the total payment amount? (i.e. are people more inclined to pay with card when the price is higher?)
