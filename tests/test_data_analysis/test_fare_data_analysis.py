@@ -2,7 +2,7 @@ import unittest
 from pyspark.sql import SparkSession
 
 import columns as c
-import data_analysis.fare_data_analysis as fd_analysis
+import data_analysis.fare_data_analysis as fda
 
 
 class FareDataAnalysisTests(unittest.TestCase):
@@ -27,7 +27,7 @@ class FareDataAnalysisTests(unittest.TestCase):
         columns = [c.payment_type, c.total_amount]
         df = self.spark.createDataFrame(data, columns)
 
-        avg_total = fd_analysis.average_card_payment_total(df)
+        avg_total = fda.average_card_payment_total(df)
 
         self.assertEqual(avg_total, 20.0)
 
@@ -42,7 +42,7 @@ class FareDataAnalysisTests(unittest.TestCase):
         columns = [c.payment_type, c.total_amount]
         df = self.spark.createDataFrame(data, columns)
 
-        avg_total = fd_analysis.average_card_payment_total(df)
+        avg_total = fda.average_card_payment_total(df)
 
         self.assertEqual(avg_total, None)
 
@@ -57,7 +57,7 @@ class FareDataAnalysisTests(unittest.TestCase):
         columns = [c.total_amount, c.passenger_count]
         df = self.spark.createDataFrame(data, columns)
 
-        trips_cost_at_least_50_count = fd_analysis.count_expensive_trips(df)
+        trips_cost_at_least_50_count = fda.count_expensive_trips(df)
 
         self.assertEqual(trips_cost_at_least_50_count, 3)  # 60, 55, and 50 are >= 50
 
@@ -72,7 +72,7 @@ class FareDataAnalysisTests(unittest.TestCase):
         columns = ["payment_type", "tip_amount"]
         df = self.spark.createDataFrame(data, columns)
 
-        result_df = fd_analysis.average_tip_by_payment_type(df)
+        result_df = fda.average_tip_by_payment_type(df)
         result = {row.payment_type: row.average_tip for row in result_df.collect()}
 
         self.assertAlmostEqual(result["Card"], 2.75, places=2)
@@ -89,7 +89,7 @@ class FareDataAnalysisTests(unittest.TestCase):
         columns = ["vendor_id", "fare_amount"]
         df = self.spark.createDataFrame(data, columns)
 
-        result_df = fd_analysis.vendor_with_highest_fare(df)
+        result_df = fda.vendor_with_highest_fare(df)
         top_vendor = result_df.first()
 
         self.assertEqual(top_vendor.vendor_id, "V1")
@@ -107,7 +107,7 @@ class FareDataAnalysisTests(unittest.TestCase):
         columns = ["hack_license", "pickup_datetime", "total_amount"]
         df = self.spark.createDataFrame(data, columns)
 
-        result_df = fd_analysis.cumulative_total_fare_on_july_4(df)
+        result_df = fda.cumulative_total_fare_on_july_4(df)
         result = {row.hack_license: row.cumulative_fare for row in
                   result_df.filter("pickup_datetime = '2023-07-04 11:00:00'").collect()}
 
@@ -127,7 +127,7 @@ class FareDataAnalysisTests(unittest.TestCase):
         columns = ["hack_license", "pickup_datetime", "total_amount"]
         df = self.spark.createDataFrame(data, columns)
 
-        result_df = fd_analysis.top_5_drivers_by_trip_count_on_july_4(df)
+        result_df = fda.top_5_drivers_by_trip_count_on_july_4(df)
         result = [(row.hack_license, row.total_fare) for row in result_df.collect()]
 
         expected_top_drivers = [("D1", 160.0), ("D2", 80.0), ("D3", 30.0)]
@@ -152,7 +152,7 @@ class FareDataAnalysisTests(unittest.TestCase):
 
         df = self.spark.createDataFrame(data, schema=columns)
 
-        evening_rides_with_high_total_amount_count = fd_analysis.count_evening_rides_with_high_total_amount(df)
+        evening_rides_with_high_total_amount_count = fda.count_evening_rides_with_high_total_amount(df)
         self.assertIsInstance(evening_rides_with_high_total_amount_count, int)
         self.assertEqual(evening_rides_with_high_total_amount_count, 3)
 
@@ -169,7 +169,7 @@ class FareDataAnalysisTests(unittest.TestCase):
 
         df = self.spark.createDataFrame(data, schema=columns)
 
-        evening_rides_with_high_total_amount_count = fd_analysis.count_evening_rides_with_high_total_amount(df)
+        evening_rides_with_high_total_amount_count = fda.count_evening_rides_with_high_total_amount(df)
         self.assertIsInstance(evening_rides_with_high_total_amount_count, int)
         self.assertEqual(evening_rides_with_high_total_amount_count, 0)
 
@@ -188,7 +188,7 @@ class FareDataAnalysisTests(unittest.TestCase):
 
         df = self.spark.createDataFrame(data, schema=columns)
 
-        evening_rides_with_high_total_amount_count = fd_analysis.count_evening_rides_with_high_total_amount(df)
+        evening_rides_with_high_total_amount_count = fda.count_evening_rides_with_high_total_amount(df)
         self.assertIsInstance(evening_rides_with_high_total_amount_count, int)
         self.assertEqual(evening_rides_with_high_total_amount_count, 0)
 
@@ -209,7 +209,7 @@ class FareDataAnalysisTests(unittest.TestCase):
 
         df = self.spark.createDataFrame(data, schema=columns)
 
-        cash_tips_above_average_count = fd_analysis.count_cash_tips_above_average(df)
+        cash_tips_above_average_count = fda.count_cash_tips_above_average(df)
         self.assertIsInstance(cash_tips_above_average_count, int)
         self.assertEqual(cash_tips_above_average_count, 2)
 
@@ -226,7 +226,7 @@ class FareDataAnalysisTests(unittest.TestCase):
 
         df = self.spark.createDataFrame(data, schema=columns)
 
-        cash_tips_above_average_count = fd_analysis.count_cash_tips_above_average(df)
+        cash_tips_above_average_count = fda.count_cash_tips_above_average(df)
         self.assertIsInstance(cash_tips_above_average_count, int)
         self.assertEqual(cash_tips_above_average_count, 0)
 
@@ -247,7 +247,7 @@ class FareDataAnalysisTests(unittest.TestCase):
 
         df = self.spark.createDataFrame(data, schema=columns)
 
-        cash_tips_above_average_count = fd_analysis.count_cash_tips_above_average(df)
+        cash_tips_above_average_count = fda.count_cash_tips_above_average(df)
         self.assertIsInstance(cash_tips_above_average_count, int)
         self.assertEqual(cash_tips_above_average_count, 0)
 
@@ -271,7 +271,7 @@ class FareDataAnalysisTests(unittest.TestCase):
 
         df = self.spark.createDataFrame(data, schema=columns)
 
-        weekday_credit_card_trips_with_high_tips_df = fd_analysis.filter_weekday_credit_card_trips_with_high_tips(df)
+        weekday_credit_card_trips_with_high_tips_df = fda.filter_weekday_credit_card_trips_with_high_tips(df)
 
         expected_data = [
             ("2024-10-02 10:00:00", 12.0, 10.0),
@@ -317,7 +317,7 @@ class FareDataAnalysisTests(unittest.TestCase):
         columns = ["medallion", "hack_license", "total_amount", "tip_amount"]
         df = self.spark.createDataFrame(data, schema=columns)
 
-        top_10_by_trips, top_10_by_trip_income, top_10_by_tips = fd_analysis.top_10_successful_drivers(df)
+        top_10_by_trips, top_10_by_trip_income, top_10_by_tips = fda.top_10_successful_drivers(df)
 
         expected_by_trips = [
             ("medallion_11", "license_11", 4),
@@ -392,7 +392,7 @@ class FareDataAnalysisTests(unittest.TestCase):
         columns = [c.pickup_datetime, c.total_amount]
         df = self.spark.createDataFrame(data, schema=columns)
 
-        month_profit, day_of_week_profit = fd_analysis.most_profitable_months_and_days(df)
+        month_profit, day_of_week_profit = fda.most_profitable_months_and_days(df)
 
         expected_month_data = [
             ("April", 240.0),
@@ -440,7 +440,7 @@ class FareDataAnalysisTests(unittest.TestCase):
 
         df = self.spark.createDataFrame(data, schema=columns)
 
-        result_df = fd_analysis.monthly_mta_tax_by_vendor(df)
+        result_df = fda.monthly_mta_tax_by_vendor(df)
 
         expected_data = [
             ("vendor_2", "February", 1.0),
@@ -459,6 +459,90 @@ class FareDataAnalysisTests(unittest.TestCase):
 
         diff_filtered = result_df_sorted.exceptAll(expected_df_sorted)
         diff_expected = expected_df_sorted.exceptAll(result_df_sorted)
+
+        self.assertTrue(diff_filtered.isEmpty())
+        self.assertTrue(diff_expected.isEmpty())
+
+    def test_get_most_profitable_rate_codes(self):
+        """Test get_most_profitable_rate_codes() function."""
+        trip_data = [
+            ("medallion_1", "license_1", "vendor_1", 1, "2024-01-01 08:00:00"),
+            ("medallion_2", "license_2", "vendor_2", 2, "2024-01-02 09:00:00"),
+            ("medallion_3", "license_3", "vendor_1", 1, "2024-01-03 10:00:00"),
+            ("medallion_4", "license_4", "vendor_2", 3, "2024-01-04 11:00:00"),
+            ("medallion_5", "license_5", "vendor_1", 2, "2024-01-05 12:00:00"),
+        ]
+        fare_data = [
+            ("medallion_1", "license_1", "vendor_1", "2024-01-01 08:00:00", 20.0),
+            ("medallion_2", "license_2", "vendor_2", "2024-01-02 09:00:00", 30.0),
+            ("medallion_3", "license_3", "vendor_1", "2024-01-03 10:00:00", 10.0),
+            ("medallion_4", "license_4", "vendor_2", "2024-01-04 11:00:00", 50.0),
+            ("medallion_5", "license_5", "vendor_1", "2024-01-05 12:00:00", 40.0),
+        ]
+
+        trip_columns = [c.medallion, c.hack_license, c.vendor_id, c.rate_code, c.pickup_datetime]
+        fare_columns = [c.medallion, c.hack_license, c.vendor_id, c.pickup_datetime, c.total_amount]
+
+        trip_data_df = self.spark.createDataFrame(trip_data, schema=trip_columns)
+        fare_data_df = self.spark.createDataFrame(fare_data, schema=fare_columns)
+
+        result_df = fda.get_most_profitable_rate_codes(trip_data_df, fare_data_df)
+
+        expected_data = [
+            (2, 70.0),
+            (3, 50.0),
+            (1, 30.0),
+        ]
+        expected_columns = [c.rate_code, "total_revenue"]
+
+        expected_df = self.spark.createDataFrame(expected_data, schema=expected_columns)
+
+        diff_filtered = result_df.exceptAll(expected_df)
+        diff_expected = expected_df.exceptAll(result_df)
+
+        self.assertTrue(diff_filtered.isEmpty())
+        self.assertTrue(diff_expected.isEmpty())
+
+    def test_get_rate_codes_with_tolls_percentage(self):
+        """Test get_rate_codes_with_tolls_percentage() function."""
+        trip_data = [
+            ("medallion_1", "license_1", "vendor_1", 1, "2024-01-01 08:00:00"),
+            ("medallion_2", "license_2", "vendor_2", 2, "2024-01-02 09:00:00"),
+            ("medallion_3", "license_3", "vendor_1", 1, "2024-01-03 10:00:00"),
+            ("medallion_3", "license_3", "vendor_1", 1, "2024-01-03 20:00:00"),
+            ("medallion_4", "license_4", "vendor_2", 3, "2024-01-04 11:00:00"),
+            ("medallion_5", "license_5", "vendor_1", 2, "2024-01-05 12:00:00"),
+            ("medallion_6", "license_6", "vendor_2", 1, "2024-01-06 13:00:00"),
+        ]
+        fare_data = [
+            ("medallion_1", "license_1", "vendor_1", "2024-01-01 08:00:00", 5.0),
+            ("medallion_2", "license_2", "vendor_2", "2024-01-02 09:00:00", 0.0),
+            ("medallion_3", "license_3", "vendor_1", "2024-01-03 10:00:00", 5.0),
+            ("medallion_3", "license_3", "vendor_1", "2024-01-03 20:00:00", 2.0),
+            ("medallion_4", "license_4", "vendor_2", "2024-01-04 11:00:00", 0.0),
+            ("medallion_5", "license_5", "vendor_1", "2024-01-05 12:00:00", 3.0),
+            ("medallion_6", "license_6", "vendor_2", "2024-01-06 13:00:00", 0.0),
+        ]
+
+        trip_columns = [c.medallion, c.hack_license, c.vendor_id, c.rate_code, c.pickup_datetime]
+        fare_columns = [c.medallion, c.hack_license, c.vendor_id, c.pickup_datetime, c.tolls_amount]
+
+        trip_data_df = self.spark.createDataFrame(trip_data, schema=trip_columns)
+        fare_data_df = self.spark.createDataFrame(fare_data, schema=fare_columns)
+
+        result_df = fda.get_rate_codes_with_tolls_percentage(trip_data_df, fare_data_df)
+
+        expected_data = [
+            (1, 4, 3, 75.0),
+            (2, 2, 1, 50.0),
+            (3, 1, 0, 0.0),
+        ]
+        expected_columns = [c.rate_code, "total_trips", "tolls_count", "tolls_percent"]
+
+        expected_df = self.spark.createDataFrame(expected_data, schema=expected_columns)
+
+        diff_filtered = result_df.exceptAll(expected_df)
+        diff_expected = expected_df.exceptAll(result_df)
 
         self.assertTrue(diff_filtered.isEmpty())
         self.assertTrue(diff_expected.isEmpty())
