@@ -1,5 +1,3 @@
-import os
-
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
@@ -14,8 +12,6 @@ from read_write import (read_fare_data_df,
 from data_postprocessing import fare_data_postprocessing as fare_proc, trip_data_postprocessing as trip_proc
 from data_cleaning.remove_duplicates import remove_duplicates
 from data_cleaning.clean_trip_data import fill_null_trip_data
-import data_analysis.fare_data_analysis as fda
-import data_analysis.trip_data_analysis as tda
 import settings as s
 import columns as c
 from data_analysis import fare_data_analysis as fda, trip_data_analysis as tda
