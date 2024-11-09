@@ -358,3 +358,36 @@ def top_5_drivers_by_trip_count_on_july_4(df: DataFrame) -> DataFrame:
     ranked_data = aggregated_data.withColumn("rank", f.row_number().over(window_spec))
 
     return ranked_data.filter(f.col("rank") <= 5)
+
+
+def get_most_profitable_rate_codes(trip_data_df: DataFrame, fare_data_df: DataFrame) -> DataFrame:
+    """
+    Get most profitable rate codes by calculating total revenue for each code.
+
+    Notes:
+        Question 10.
+
+    Args:
+        trip_data_df (DataFrame): Trip data DataFrame for processing.
+        fare_data_df (DataFrame): Fare data DataFrame for processing.
+
+    Returns:
+        DataFrame: DataFrame containing rate codes with the highest total revenue ordered by total revenue
+                   in descending order.
+
+    Examples:
+        >>> most_profitable_rate_codes_df = get_most_profitable_rate_codes(trip_data_df, fare_data_df)
+    """
+    trip_fare_data = trip_data_df.join(
+        fare_data_df,
+        on=['medallion', 'hack_license', 'pickup_datetime'],
+        how='inner'
+    )
+
+    profit_from_rate_codes = (trip_fare_data
+                             .groupBy('rate_code')
+                             .agg(f.sum('total_amount').alias('total_revenue'))
+                             .orderBy(f.desc('total_revenue'))
+                            )
+
+    return profit_from_rate_codes
