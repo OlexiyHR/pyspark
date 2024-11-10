@@ -128,6 +128,9 @@ def main():
     passenger_count_distribution = tda.passenger_count_distribution(trip_data_df)
     write_question_results(passenger_count_distribution, 14)
 
+    short_trip_distribution_by_day_ranked = tda.short_trip_distribution_by_day_ranked(trip_data_df)
+    write_question_results(short_trip_distribution_by_day_ranked, 18)
+
     vendor_trip_counts_distribution = tda.trip_amounts_distribution_by_vendor(trip_data_df)
     write_question_results(vendor_trip_counts_distribution, 19)
 

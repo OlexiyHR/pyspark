@@ -25,7 +25,7 @@ Below is a list of 20 business questions that we would like to answer when worki
 15. Does the number of passengers affect the trip price?
 16. How does the number of passengers depend on the time of day? (Hromiak)
 17. How does the number of passengers depend on the pickup location (borough)?
-18. Which days or hours have the biggest amount of short trips (less than 3km)? (Mykytyshin)
+18. Which days have the biggest amount of short trips (less than 3km)? (Mykytyshyn)
 19. What is the distribution of trip amounts by each vendor? (Mykytyshyn)
 20. What is the average trip speed in each of the months? (Mykytyshyn)
 21. How many trips took place in evening time (between 18:00 and 23:59) and had total_amount above the average? (Krasovskyy)
