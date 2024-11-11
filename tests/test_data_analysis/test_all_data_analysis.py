@@ -76,7 +76,7 @@ class AllDataAnalysisTests(unittest.TestCase):
         ]
         trip_data_df = self.spark.createDataFrame(data_trip_data,
                                                   [c.medallion, c.hack_license, c.vendor_id, c.pickup_datetime,
-                                                   c.trip_time_in_secs])
+                                                   c.trip_distance])
         trip_fare_df = self.spark.createDataFrame(data_trip_fare,
                                                   [c.medallion, c.hack_license, c.vendor_id, c.pickup_datetime,
                                                    c.tip_amount])
@@ -84,6 +84,55 @@ class AllDataAnalysisTests(unittest.TestCase):
         correlation = ada.column_tip_correlation(trip_data_df, trip_fare_df, column_name=c.trip_distance)
 
         self.assertIsNone(correlation)
+
+    def test_count_trips_missing_fare_zero(self):
+        """
+        Tests that the count of trips with missing fare information is 0
+        when all trips have fare data.
+        """
+        data_trip_data = [
+            ("med1", "license1", "vendor1", "2024-11-10 10:00:00", 10.0),
+            ("med2", "license2", "vendor1", "2024-11-10 11:00:00", 20.0),
+        ]
+        data_trip_fare = [
+            ("med1", "license1", "vendor1", "2024-11-10 10:00:00", 15.0),
+            ("med2", "license2", "vendor1", "2024-11-10 11:00:00", 20.0),
+        ]
+        trip_data_df = self.spark.createDataFrame(data_trip_data,
+                                                  [c.medallion, c.hack_license, c.vendor_id, c.pickup_datetime,
+                                                   c.trip_distance])
+        trip_fare_df = self.spark.createDataFrame(data_trip_fare,
+                                                  [c.medallion, c.hack_license, c.vendor_id, c.pickup_datetime,
+                                                   c.total_amount])
+
+        missing_fare_count = ada.count_trips_missing_fare(trip_data_df, trip_fare_df)
+
+        self.assertEqual(missing_fare_count, 0)
+
+    def test_count_trips_missing_fare_positive(self):
+        """
+        Tests that the count of trips with missing fare information is positive
+        when there are trips without corresponding fare data.
+        """
+        data_trip_data = [
+            ("med1", "license1", "vendor1", "2024-11-10 10:00:00", 10.0),
+            ("med2", "license2", "vendor1", "2024-11-10 11:00:00", 20.0),
+            ("med3", "license3", "vendor1", "2024-11-10 12:00:00", 15.0),
+        ]
+        data_trip_fare = [
+            ("med1", "license1", "vendor1", "2024-11-10 10:00:00", 15.0),
+            ("med2", "license2", "vendor1", "2024-11-10 11:00:00", 20.0),
+        ]
+        trip_data_df = self.spark.createDataFrame(data_trip_data,
+                                                  [c.medallion, c.hack_license, c.vendor_id, c.pickup_datetime,
+                                                   c.trip_distance])
+        trip_fare_df = self.spark.createDataFrame(data_trip_fare,
+                                                  [c.medallion, c.hack_license, c.vendor_id, c.pickup_datetime,
+                                                   c.total_amount])
+
+        missing_fare_count = ada.count_trips_missing_fare(trip_data_df, trip_fare_df)
+
+        self.assertEqual(missing_fare_count, 1)
 
 
 if __name__ == "__main__":
