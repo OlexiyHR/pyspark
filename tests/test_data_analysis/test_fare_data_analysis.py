@@ -45,8 +45,7 @@ class FareDataAnalysisTests(unittest.TestCase):
 
         avg_total = fda.average_card_payment_total(df)
 
-        self.assertEqual(avg_total, None)
-
+        self.assertEqual(avg_total, 0.0)
 
     def test_count_trips_cost_at_least_50_dollars(self):
         data = [
