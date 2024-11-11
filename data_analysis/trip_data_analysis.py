@@ -52,8 +52,9 @@ def count_medium_duration_trips(df: DataFrame) -> int:
     Examples:
         >>> medium_duration_trips_count = count_medium_duration_trips(trip_data_df)
     """
-    return df.where((f.col(c.trip_time_in_secs) >= 1800)
-                     & (f.col(c.trip_time_in_secs) <= 3600)).count()
+    count_medium = df.where((f.col(c.trip_time_in_secs) >= 1800)
+                           & (f.col(c.trip_time_in_secs) <= 3600)).count()
+    return count_medium
 
 
 def jfk_airport_trips_with_four_passengers(df: DataFrame) -> DataFrame:
@@ -73,7 +74,8 @@ def jfk_airport_trips_with_four_passengers(df: DataFrame) -> DataFrame:
     filtered_df = df.filter((f.col(c.passenger_count) == 4) & (f.col(c.rate_code) == 2))
 
     # Drop the passenger_count and rate_code columns, as they are the same and known.
-    return filtered_df.drop(c.passenger_count, c.rate_code)
+    result_df = filtered_df.drop(c.passenger_count, c.rate_code)
+    return result_df
 
 
 def top_10_drivers_by_between_ride_distance(df):
@@ -340,12 +342,16 @@ def passenger_count_by_time_of_day(df: DataFrame) -> DataFrame:
         >>> avg_passenger_count = passenger_count_by_time_of_day(trip_data_df)
     """
     df_with_time_of_day = df.withColumn(
+        "hour_of_day", f.hour(c.pickup_datetime)
+    ).withColumn(
         "time_of_day",
-        f.when((f.hour(c.pickup_datetime) >= 6) & (f.hour(c.pickup_datetime) < 12), "morning")
-        .when((f.hour(c.pickup_datetime) >= 12) & (f.hour(c.pickup_datetime) < 18), "afternoon")
-        .when((f.hour(c.pickup_datetime) >= 18) & (f.hour(c.pickup_datetime) < 24), "evening")
+        f.when((f.col("hour_of_day") >= 6) & (f.col("hour_of_day") < 12), "morning")
+        .when((f.col("hour_of_day") >= 12) & (f.col("hour_of_day") < 18), "afternoon")
+        .when((f.col("hour_of_day") >= 18) & (f.col("hour_of_day") < 24), "evening")
         .otherwise("night")
-    )
+    ).drop("hour_of_day")
 
-    return df_with_time_of_day.groupBy("time_of_day").agg(
-        f.avg(c.pickup_datetime).alias("average_passenger_count")).orderBy("time_of_day")
+    result_df = (df_with_time_of_day.groupBy("time_of_day")
+                                    .agg(f.avg(c.pickup_datetime).alias("average_passenger_count"))
+                                    .orderBy("time_of_day"))
+    return result_df
