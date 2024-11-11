@@ -131,6 +131,8 @@ def main():
 
     trip_data_df = trip_proc.transform_store_and_fwd_flag_to_bool(trip_data_df)
 
+    trip_data_df = trip_proc.remove_invalid__rate_code(trip_data_df)
+
     rw.write_trip_data_df_to_csv(
         df=trip_data_df,
         write_folder_path=s.TRIP_DATA_WRITE_DIRECTORY_PATH,

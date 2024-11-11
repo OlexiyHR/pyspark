@@ -65,3 +65,27 @@ def remove_invalid_rows(df, column_name=c.dropoff_longitude):
     """
     result_df = df.filter(f.col(column_name).isNotNull())
     return result_df
+
+
+def remove_invalid__rate_code(df, column_name='rate_code'):
+    """
+    Remove rows where the column 'rate_code' has invalid values (greater than 6).
+
+    Rows with 'rate_code' values greater than 6 are considered invalid, as they do not represent standard trip rate codes.
+    Such rows do not provide useful information about trips and can be removed for cleaner analysis.
+
+    Args:
+        df (DataFrame): Spark DataFrame from which invalid rows will be removed.
+        column_name (str, optional): The name of the column to check for invalid values. Defaults to 'rate_code'.
+
+    Returns:
+        DataFrame: New Spark DataFrame without invalid rows.
+
+    Examples:
+        >>> trip_data_df = remove_invalid_rows_by_rate_code(
+        ...     df=trip_data_df,
+        ...     column_name='rate_code'
+        ... )
+    """
+    result_df = df.filter(f.col(column_name) <= 6)
+    return result_df
