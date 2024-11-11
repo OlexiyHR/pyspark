@@ -3,6 +3,7 @@ from pyspark.sql import SparkSession
 
 import columns as c
 import data_analysis.fare_data_analysis as fda
+from main import helper_dataframes
 
 
 class FareDataAnalysisTests(unittest.TestCase):
@@ -375,6 +376,8 @@ class FareDataAnalysisTests(unittest.TestCase):
 
     def test_most_profitable_months_and_days(self):
         """Test most_profitable_months_and_days() with month and day names."""
+        month_names_df, day_names_df = helper_dataframes(self.spark)
+
         data = [
             ("2024-01-01 18:30:00", 20.0),
             ("2024-01-15 12:30:00", 15.0),
@@ -392,7 +395,7 @@ class FareDataAnalysisTests(unittest.TestCase):
         columns = [c.pickup_datetime, c.total_amount]
         df = self.spark.createDataFrame(data, schema=columns)
 
-        month_profit, day_of_week_profit = fda.most_profitable_months_and_days(df)
+        month_profit, day_of_week_profit = fda.most_profitable_months_and_days(df, month_names_df, day_names_df)
 
         expected_month_data = [
             ("April", 240.0),
