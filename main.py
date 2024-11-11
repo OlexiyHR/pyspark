@@ -153,7 +153,7 @@ def main():
     rw.write_question_results(passenger_count_distribution, 14)
 
     short_trip_distribution_by_day_ranked = tda.short_trip_distribution_by_day_ranked(trip_data_df)
-    write_question_results(short_trip_distribution_by_day_ranked, 18)
+    rw.write_question_results(short_trip_distribution_by_day_ranked, 18)
 
     vendor_trip_counts_distribution = tda.trip_amounts_distribution_by_vendor(trip_data_df)
     rw.write_question_results(vendor_trip_counts_distribution, 19)
@@ -204,11 +204,11 @@ def main():
     ranked_trip_counts_df = tda.get_driver_peak_load_days_in_december(trip_data_df)
     rw.write_question_results(ranked_trip_counts_df, 33)
 
-    most_profitable_rate_codes_df = fda.get_most_profitable_rate_codes(trip_data_df=trip_data_df,
+    most_profitable_rate_codes_df = ada.get_most_profitable_rate_codes(trip_data_df=trip_data_df,
                                                                        fare_data_df=fare_data_df)
     rw.write_question_results(most_profitable_rate_codes_df, 10)
 
-    rate_codes_with_tolls_percentage_df = fda.get_rate_codes_with_tolls_percentage(trip_data_df=trip_data_df,
+    rate_codes_with_tolls_percentage_df = ada.get_rate_codes_with_tolls_percentage(trip_data_df=trip_data_df,
                                                                                    fare_data_df=fare_data_df)
     rw.write_question_results(rate_codes_with_tolls_percentage_df, 36)
 

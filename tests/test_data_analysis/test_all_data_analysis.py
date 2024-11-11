@@ -186,5 +186,90 @@ class AllDataAnalysisTests(unittest.TestCase):
         # Перевірка для "card", "cash" та None як окремий payment_type
         self.assertEqual(result, {"card": 1, "cash": 2, None: 2})
 
+    def test_get_most_profitable_rate_codes(self):
+        """Test get_most_profitable_rate_codes() function."""
+        trip_data = [
+            ("medallion_1", "license_1", "vendor_1", 1, "2024-01-01 08:00:00"),
+            ("medallion_2", "license_2", "vendor_2", 2, "2024-01-02 09:00:00"),
+            ("medallion_3", "license_3", "vendor_1", 1, "2024-01-03 10:00:00"),
+            ("medallion_4", "license_4", "vendor_2", 3, "2024-01-04 11:00:00"),
+            ("medallion_5", "license_5", "vendor_1", 2, "2024-01-05 12:00:00"),
+        ]
+        fare_data = [
+            ("medallion_1", "license_1", "vendor_1", "2024-01-01 08:00:00", 20.0),
+            ("medallion_2", "license_2", "vendor_2", "2024-01-02 09:00:00", 30.0),
+            ("medallion_3", "license_3", "vendor_1", "2024-01-03 10:00:00", 10.0),
+            ("medallion_4", "license_4", "vendor_2", "2024-01-04 11:00:00", 50.0),
+            ("medallion_5", "license_5", "vendor_1", "2024-01-05 12:00:00", 40.0),
+        ]
+
+        trip_columns = [c.medallion, c.hack_license, c.vendor_id, c.rate_code, c.pickup_datetime]
+        fare_columns = [c.medallion, c.hack_license, c.vendor_id, c.pickup_datetime, c.total_amount]
+
+        trip_data_df = self.spark.createDataFrame(trip_data, schema=trip_columns)
+        fare_data_df = self.spark.createDataFrame(fare_data, schema=fare_columns)
+
+        result_df = ada.get_most_profitable_rate_codes(trip_data_df, fare_data_df)
+
+        expected_data = [
+            (2, 70.0),
+            (3, 50.0),
+            (1, 30.0),
+        ]
+        expected_columns = [c.rate_code, "total_revenue"]
+
+        expected_df = self.spark.createDataFrame(expected_data, schema=expected_columns)
+
+        diff_filtered = result_df.exceptAll(expected_df)
+        diff_expected = expected_df.exceptAll(result_df)
+
+        self.assertTrue(diff_filtered.isEmpty())
+        self.assertTrue(diff_expected.isEmpty())
+
+    def test_get_rate_codes_with_tolls_percentage(self):
+        """Test get_rate_codes_with_tolls_percentage() function."""
+        trip_data = [
+            ("medallion_1", "license_1", "vendor_1", 1, "2024-01-01 08:00:00"),
+            ("medallion_2", "license_2", "vendor_2", 2, "2024-01-02 09:00:00"),
+            ("medallion_3", "license_3", "vendor_1", 1, "2024-01-03 10:00:00"),
+            ("medallion_3", "license_3", "vendor_1", 1, "2024-01-03 20:00:00"),
+            ("medallion_4", "license_4", "vendor_2", 3, "2024-01-04 11:00:00"),
+            ("medallion_5", "license_5", "vendor_1", 2, "2024-01-05 12:00:00"),
+            ("medallion_6", "license_6", "vendor_2", 1, "2024-01-06 13:00:00"),
+        ]
+        fare_data = [
+            ("medallion_1", "license_1", "vendor_1", "2024-01-01 08:00:00", 5.0),
+            ("medallion_2", "license_2", "vendor_2", "2024-01-02 09:00:00", 0.0),
+            ("medallion_3", "license_3", "vendor_1", "2024-01-03 10:00:00", 5.0),
+            ("medallion_3", "license_3", "vendor_1", "2024-01-03 20:00:00", 2.0),
+            ("medallion_4", "license_4", "vendor_2", "2024-01-04 11:00:00", 0.0),
+            ("medallion_5", "license_5", "vendor_1", "2024-01-05 12:00:00", 3.0),
+            ("medallion_6", "license_6", "vendor_2", "2024-01-06 13:00:00", 0.0),
+        ]
+
+        trip_columns = [c.medallion, c.hack_license, c.vendor_id, c.rate_code, c.pickup_datetime]
+        fare_columns = [c.medallion, c.hack_license, c.vendor_id, c.pickup_datetime, c.tolls_amount]
+
+        trip_data_df = self.spark.createDataFrame(trip_data, schema=trip_columns)
+        fare_data_df = self.spark.createDataFrame(fare_data, schema=fare_columns)
+
+        result_df = ada.get_rate_codes_with_tolls_percentage(trip_data_df, fare_data_df)
+
+        expected_data = [
+            (1, 4, 3, 75.0),
+            (2, 2, 1, 50.0),
+            (3, 1, 0, 0.0),
+        ]
+        expected_columns = [c.rate_code, "total_trips", "tolls_count", "tolls_percent"]
+
+        expected_df = self.spark.createDataFrame(expected_data, schema=expected_columns)
+
+        diff_filtered = result_df.exceptAll(expected_df)
+        diff_expected = expected_df.exceptAll(result_df)
+
+        self.assertTrue(diff_filtered.isEmpty())
+        self.assertTrue(diff_expected.isEmpty())
+
+
 if __name__ == "__main__":
     unittest.main()
