@@ -3,17 +3,7 @@ from pyspark.sql import SparkSession
 from pyspark.testing import assertDataFrameEqual
 
 import columns as c
-from data_analysis.trip_data_analysis import (count_short_trips,
-                                              count_large_group_trips,
-                                              count_medium_duration_trips,
-                                              jfk_airport_trips_with_four_passengers,
-                                              trip_amounts_distribution_by_vendor,
-                                              average_trip_speed_by_month,
-                                              passenger_count_distribution,
-                                              short_trip_distribution_by_day_ranked,
-                                              top_10_drivers_by_distance_per_month,
-                                              passenger_count_by_time_of_day,
-                                              get_driver_peak_load_days_in_december)
+import data_analysis.trip_data_analysis as td_analysis
 
 
 class TripDataAnalysisTests(unittest.TestCase):
@@ -35,7 +25,7 @@ class TripDataAnalysisTests(unittest.TestCase):
         columns = [c.trip_distance, c.passenger_count]
         df = self.spark.createDataFrame(data, columns)
 
-        short_trips_count = count_short_trips(df)
+        short_trips_count = td_analysis.count_short_trips(df)
 
         self.assertEqual(short_trips_count, 2)
 
@@ -49,7 +39,7 @@ class TripDataAnalysisTests(unittest.TestCase):
         columns = [c.trip_distance, c.passenger_count]
         df = self.spark.createDataFrame(data, columns)
 
-        large_group_trips_count = count_large_group_trips(df)
+        large_group_trips_count = td_analysis.count_large_group_trips(df)
 
         self.assertEqual(large_group_trips_count, 3)
 
@@ -61,7 +51,7 @@ class TripDataAnalysisTests(unittest.TestCase):
         ]
         columns = [c.trip_distance, c.passenger_count]
         df = self.spark.createDataFrame(data, columns)
-        short_trips_count = count_short_trips(df)
+        short_trips_count = td_analysis.count_short_trips(df)
         self.assertEqual(short_trips_count, 0)
 
     def test_count_no_large_group_trips(self):
@@ -73,7 +63,7 @@ class TripDataAnalysisTests(unittest.TestCase):
         columns = [c.trip_distance, c.passenger_count]
         df = self.spark.createDataFrame(data, columns)
 
-        large_group_trips_count = count_large_group_trips(df)
+        large_group_trips_count = td_analysis.count_large_group_trips(df)
 
         self.assertEqual(large_group_trips_count, 0)
 
@@ -87,7 +77,7 @@ class TripDataAnalysisTests(unittest.TestCase):
         columns = [c.trip_time_in_secs, c.passenger_count]
         df = self.spark.createDataFrame(data, columns)
 
-        trips_duration_count = count_medium_duration_trips(df)
+        trips_duration_count = td_analysis.count_medium_duration_trips(df)
 
         self.assertEqual(trips_duration_count, 3)  # 1800, 2400, and 3600 are between 30 and 60 minutes
 
@@ -101,7 +91,7 @@ class TripDataAnalysisTests(unittest.TestCase):
         columns = [c.passenger_count, c.rate_code]
         df = self.spark.createDataFrame(data, columns)
 
-        jfk_trips_with_four_passengers_df = jfk_airport_trips_with_four_passengers(df)
+        jfk_trips_with_four_passengers_df = td_analysis.jfk_airport_trips_with_four_passengers(df)
 
         self.assertEqual(jfk_trips_with_four_passengers_df.count(), 2)  # Two trips with 4 passengers and JFK rate code
 
@@ -123,7 +113,7 @@ class TripDataAnalysisTests(unittest.TestCase):
         result_columns = [c.vendor_id, "trip_count"]
         expected_df = self.spark.createDataFrame(expected_data, result_columns)
 
-        actual_df = trip_amounts_distribution_by_vendor(df)
+        actual_df = td_analysis.trip_amounts_distribution_by_vendor(df)
 
         assertDataFrameEqual(actual_df, expected_df)
 
@@ -136,7 +126,7 @@ class TripDataAnalysisTests(unittest.TestCase):
         columns = [c.pickup_datetime, c.trip_distance, c.trip_time_in_secs]
         df = self.spark.createDataFrame(data, columns)
 
-        result_df = average_trip_speed_by_month(df)
+        result_df = td_analysis.average_trip_speed_by_month(df)
 
         result_data = {row["month"]: row["average_trip_speed_in_miles_per_hour"] for row in result_df.collect()}
         self.assertAlmostEqual(result_data.get(1), 60.0, places=1)
@@ -162,7 +152,7 @@ class TripDataAnalysisTests(unittest.TestCase):
         result_columns = ["passenger_count", "trip_count"]
         expected_df = self.spark.createDataFrame(expected_data, result_columns)
 
-        actual_df = passenger_count_distribution(df)
+        actual_df = td_analysis.passenger_count_distribution(df)
 
         assertDataFrameEqual(actual_df, expected_df)
 
@@ -186,7 +176,7 @@ class TripDataAnalysisTests(unittest.TestCase):
         expected_schema = ["day_of_week", "short_trip_count", "ranking"]
         expected_df = self.spark.createDataFrame(expected_data, expected_schema)
 
-        actual_df = short_trip_distribution_by_day_ranked(df)
+        actual_df = td_analysis.short_trip_distribution_by_day_ranked(df)
 
         assertDataFrameEqual(actual_df, expected_df)
 
@@ -221,7 +211,7 @@ class TripDataAnalysisTests(unittest.TestCase):
         expected_columns = ["month", "hack_license", "total_distance", "ranking"]
         expected_df = self.spark.createDataFrame(expected_data, expected_columns)
 
-        actual_df = top_10_drivers_by_distance_per_month(df)
+        actual_df = td_analysis.top_10_drivers_by_distance_per_month(df)
 
         assertDataFrameEqual(actual_df, expected_df)
 
@@ -235,7 +225,7 @@ class TripDataAnalysisTests(unittest.TestCase):
         columns = ["pickup_datetime", "passenger_count"]
         df = self.spark.createDataFrame(data, columns)
 
-        result_df = passenger_count_by_time_of_day(df)
+        result_df = td_analysis.passenger_count_by_time_of_day(df)
         result = {row.time_of_day: row.average_passenger_count for row in result_df.collect()}
 
         self.assertAlmostEqual(result["morning"], 2.0, places=2)
@@ -260,7 +250,7 @@ class TripDataAnalysisTests(unittest.TestCase):
 
             df = self.spark.createDataFrame(data, ["medallion", "hack_license", "pickup_datetime"])
 
-            result_df = get_driver_peak_load_days_in_december(df)
+            result_df = td_analysis.get_driver_peak_load_days_in_december(df)
 
             expected_data = [
                 ("driver1", "license1", "2022-12-03", 3),

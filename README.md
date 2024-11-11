@@ -22,7 +22,7 @@ Below is a list of 20 business questions that we would like to answer when worki
 12. How much MTA tax is paid by taxi operators each month? (Krasovskyy)
 13. Does payment type depend on the total payment amount? (i.e. are people more inclined to pay with card when the price is higher?)
 14. What is the distribution of the amount of passengers per trip? (Mykytyshyn)
-15. Does the number of passengers affect the trip price?
+15. Does the number of passengers affect the trip price? (Hromiak)
 16. How does the number of passengers depend on the time of day? (Hromiak)
 17. How does the number of passengers depend on the pickup location (borough)?
 18. Which days have the biggest amount of short trips (less than 3km)? (Mykytyshyn)
@@ -43,3 +43,5 @@ Below is a list of 20 business questions that we would like to answer when worki
 33. Peak load hours for each driver during December? (Krasovskyy)
 34. Top 10 drivers for each month by total trip distance? (Mykytyshyn)
 35. How many trips have missing or incorrect fare information? (Mykytyshyn)
+
+37. What is the most popular rate code for each payment type? (Hromiak)
