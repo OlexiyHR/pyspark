@@ -260,7 +260,6 @@ def write_question_results(results, question_num: int, part: int = 0):
 
 def write_df_to_csv(df, folder_path):
     (df
-     .repartition(s.WRITE_PARTITION)
      .write
      .csv(folder_path, mode='overwrite', header=True, sep=','))
 

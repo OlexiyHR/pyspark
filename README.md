@@ -16,7 +16,7 @@ Below is a list of 20 business questions that we would like to answer when worki
 6. Which NYC borough has the biggest traffic?
 7. Does the tip amount depend on the pickup / dropoff borough?
 8. How does the tipping amount depend on the payment type? (Hromiak)
-9. How does the tipping amount depend on the distance / duration / time of the day?
+9. How does the tipping amount depend on the distance / duration? (Mykytyshyn)
 10. Which rate codes are the most profitable? (Krasovskyy)
 11. Which vendor has the highest fare? (Hromiak)
 12. How much MTA tax is paid by taxi operators each month? (Krasovskyy)
@@ -25,7 +25,7 @@ Below is a list of 20 business questions that we would like to answer when worki
 15. Does the number of passengers affect the trip price? (Hromiak)
 16. How does the number of passengers depend on the time of day? (Hromiak)
 17. How does the number of passengers depend on the pickup location (borough)?
-18. Which days or hours have the biggest amount of short trips (less than 3km)? (Mykytyshin)
+18. Which days have the biggest amount of short trips (less than 3km)? (Mykytyshyn)
 19. What is the distribution of trip amounts by each vendor? (Mykytyshyn)
 20. What is the average trip speed in each of the months? (Mykytyshyn)
 21. How many trips took place in evening time (between 18:00 and 23:59) and had total_amount above the average? (Krasovskyy)
@@ -42,4 +42,6 @@ Below is a list of 20 business questions that we would like to answer when worki
 32. Top 5 drivers by the count of trips by 4th of July (sorted primarily by trip count and secondarily by total fare amount in descending order in cases of ties) (Hromiak)
 33. Peak load hours for each driver during December? (Krasovskyy)
 34. Top 10 drivers for each month by total trip distance? (Mykytyshyn)
-35. How often (in percents) rate codes for trips had tolls (tolls_amount > 0)? (Krasovskyy)
+35. How many trips have missing or incorrect fare information? (Mykytyshyn)
+36. How often (in percents) rate codes for trips had tolls (tolls_amount > 0)? (Krasovskyy)
+37. What is the most popular rate code for each payment type? (Hromiak)

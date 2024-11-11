@@ -10,7 +10,7 @@ from data_cleaning.remove_duplicates import remove_duplicates
 from data_cleaning.clean_trip_data import fill_null_trip_data
 import settings as s
 import columns as c
-from data_analysis import fare_data_analysis as fda, trip_data_analysis as tda
+from data_analysis import fare_data_analysis as fda, trip_data_analysis as tda, all_data_analysis as ada
 
 
 def create_spark_session():
@@ -61,7 +61,7 @@ def display_demo_dataframe_krasovskyy(spark_session):
     basic_df_k.basic_test_df(spark_session=spark_session).show()
 
 
-def display_demo_dataframe_Hromiak(spark_session):
+def display_demo_dataframe_hromiak(spark_session):
     df = basic_test_df_Hromiak(spark_session)
     df.show()
 
@@ -73,7 +73,7 @@ def main():
 
     display_demo_dataframe_krasovskyy(spark_session)
     display_demo_dataframe_mykytyshyn(spark_session)
-    display_demo_dataframe_Hromiak(spark_session)
+    display_demo_dataframe_hromiak(spark_session)
 
     fare_data_df = rw.read_fare_data_df(
         spark_session=spark_session,
@@ -142,8 +142,16 @@ def main():
     rw.setup_directories()
 
     # Artem
+    tip_distance_correlation = ada.column_tip_correlation(trip_data_df, fare_data_df, column_name=c.trip_distance)
+    tip_duration_correlation = ada.column_tip_correlation(trip_data_df, fare_data_df, column_name=c.trip_time_in_secs)
+    rw.write_question_results(tip_distance_correlation, 9, part=1)
+    rw.write_question_results(tip_duration_correlation, 9, part=2)
+
     passenger_count_distribution = tda.passenger_count_distribution(trip_data_df)
     rw.write_question_results(passenger_count_distribution, 14)
+
+    short_trip_distribution_by_day_ranked = tda.short_trip_distribution_by_day_ranked(trip_data_df)
+    write_question_results(short_trip_distribution_by_day_ranked, 18)
 
     vendor_trip_counts_distribution = tda.trip_amounts_distribution_by_vendor(trip_data_df)
     rw.write_question_results(vendor_trip_counts_distribution, 19)
@@ -162,6 +170,9 @@ def main():
 
     top_10_drivers_by_distance_per_month = tda.top_10_drivers_by_distance_per_month(trip_data_df)
     rw.write_question_results(top_10_drivers_by_distance_per_month, 34)
+
+    missing_or_incorrect_fare_data_count = ada.count_trips_missing_fare(trip_data_df, fare_data_df)
+    rw.write_question_results(missing_or_incorrect_fare_data_count, 35)
 
     # Andrii
     evening_rides_with_high_total_amount_count = fda.count_evening_rides_with_high_total_amount(fare_data_df)
@@ -197,7 +208,7 @@ def main():
 
     rate_codes_with_tolls_percentage_df = fda.get_rate_codes_with_tolls_percentage(trip_data_df=trip_data_df,
                                                                                    fare_data_df=fare_data_df)
-    rw.write_question_results(rate_codes_with_tolls_percentage_df, 35)
+    rw.write_question_results(rate_codes_with_tolls_percentage_df, 36)
 
     # Oleksii
     expensive_trips = fda.count_expensive_trips(fare_data_df)
@@ -223,6 +234,12 @@ def main():
 
     top_5_drivers_by_trip_count_on_july_4 = fda.top_5_drivers_by_trip_count_on_july_4(fare_data_df)
     rw.write_question_results(top_5_drivers_by_trip_count_on_july_4, 32)
+
+    passenger_count_vs_trip_price = ada.passenger_count_vs_trip_price(trip_data_df, fare_data_df)
+    rw.write_question_results(passenger_count_vs_trip_price, 15)
+
+    most_popular_rate_code_by_payment_type = ada.most_popular_rate_code_by_payment_type(trip_data_df, fare_data_df)
+    rw.write_question_results(most_popular_rate_code_by_payment_type, 37)
 
     spark_session.stop()
 

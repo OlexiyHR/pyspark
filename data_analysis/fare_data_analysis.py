@@ -125,7 +125,8 @@ def count_expensive_trips(df: DataFrame) -> int:
     Examples:
         >>> expensive_trips_count = count_expensive_trips(fare_data_df)
     """
-    return df.where(f.col(c.total_amount) >= 50).count()
+    count_expensive = df.where(f.col(c.total_amount) >= 50).count()
+    return count_expensive
 
 
 def top_10_successful_drivers(df):
@@ -284,7 +285,8 @@ def average_tip_by_payment_type(df: DataFrame) -> DataFrame:
     Examples:
         >>> avg_tips_by_payment = average_tip_by_payment_type(fare_data_df)
     """
-    return df.groupBy(c.payment_type).agg(f.avg(c.tip_amount).alias("average_tip"))
+    result_df = df.groupBy(c.payment_type).agg(f.avg(c.tip_amount).alias("average_tip"))
+    return result_df
 
 
 def vendor_with_highest_fare(df: DataFrame) -> DataFrame:
@@ -301,7 +303,10 @@ def vendor_with_highest_fare(df: DataFrame) -> DataFrame:
     Examples:
         >>> top_vendor = vendor_with_highest_fare(fare_data_df)
     """
-    return df.groupBy(c.vendor_id).agg(f.sum(c.fare_amount).alias("total_fare")).orderBy("total_fare", ascending=False)
+    result_df = (df.groupBy(c.vendor_id)
+                   .agg(f.sum(c.fare_amount).alias("total_fare"))
+                   .orderBy("total_fare", ascending=False))
+    return result_df
 
 
 def cumulative_total_fare_on_july_4(df: DataFrame) -> DataFrame:
@@ -324,7 +329,8 @@ def cumulative_total_fare_on_july_4(df: DataFrame) -> DataFrame:
 
     window_spec = Window.partitionBy(c.hack_license).orderBy(c.pickup_datetime)
 
-    return july_4_data.withColumn("cumulative_fare", f.sum(c.total_amount).over(window_spec))
+    result_df = july_4_data.withColumn("cumulative_fare", f.sum(c.total_amount).over(window_spec))
+    return result_df
 
 
 def top_5_drivers_by_trip_count_on_july_4(df: DataFrame) -> DataFrame:
@@ -354,7 +360,8 @@ def top_5_drivers_by_trip_count_on_july_4(df: DataFrame) -> DataFrame:
 
     ranked_data = aggregated_data.withColumn("rank", f.row_number().over(window_spec))
 
-    return ranked_data.filter(f.col("rank") <= 5)
+    result_df = ranked_data.filter(f.col("rank") <= 5)
+    return result_df
 
 
 def get_most_profitable_rate_codes(trip_data_df: DataFrame, fare_data_df: DataFrame) -> DataFrame:
@@ -402,6 +409,9 @@ def get_most_profitable_rate_codes(trip_data_df: DataFrame, fare_data_df: DataFr
 def get_rate_codes_with_tolls_percentage(trip_data_df: DataFrame, fare_data_df: DataFrame) -> DataFrame:
     """
     Get the rate codes for trips and calculate the percentage of trips that had tolls (tolls_amount > 0).
+    
+    Notes:
+        Question 36.
 
     Args:
         trip_data_df (DataFrame): Trip data DataFrame for processing.
