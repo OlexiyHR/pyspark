@@ -6,7 +6,6 @@ from pyspark.sql import SparkSession
 from basic_dfs import basic_df_Krasovskyy as basic_df_k
 from basic_dfs.basic_df_mykytyshyn import basic_test_df as basic_test_df_myk
 from basic_dfs.basic_df_Hromiak import basic_test_df as basic_test_df_Hromiak
-from columns import trip_distance
 from read_write import (read_fare_data_df,
                         write_fare_data_df_to_csv,
                         read_trip_data_df,
@@ -15,11 +14,9 @@ from read_write import (read_fare_data_df,
 from data_postprocessing import fare_data_postprocessing as fare_proc, trip_data_postprocessing as trip_proc
 from data_cleaning.remove_duplicates import remove_duplicates
 from data_cleaning.clean_trip_data import fill_null_trip_data
-import data_analysis.fare_data_analysis as fda
-import data_analysis.trip_data_analysis as tda
 import settings as s
 import columns as c
-from data_analysis import fare_data_analysis as fda, trip_data_analysis as tda
+from data_analysis import fare_data_analysis as fda, trip_data_analysis as tda, all_data_analysis as ada
 
 
 def create_spark_session():
@@ -125,6 +122,11 @@ def main():
     setup_directories()
 
     # Artem
+    tip_distance_correlation = ada.column_tip_correlation(trip_data_df, fare_data_df, column_name=c.trip_distance)
+    tip_duration_correlation = ada.column_tip_correlation(trip_data_df, fare_data_df, column_name=c.trip_time_in_secs)
+    write_question_results(tip_distance_correlation, 9, part=1)
+    write_question_results(tip_duration_correlation, 9, part=2)
+
     passenger_count_distribution = tda.passenger_count_distribution(trip_data_df)
     write_question_results(passenger_count_distribution, 14)
 
@@ -149,6 +151,8 @@ def main():
     top_10_drivers_by_distance_per_month = tda.top_10_drivers_by_distance_per_month(trip_data_df)
     write_question_results(top_10_drivers_by_distance_per_month, 34)
 
+    missing_or_incorrect_fare_data_count = ada.count_trips_missing_fare(trip_data_df, fare_data_df)
+    write_question_results(missing_or_incorrect_fare_data_count, 35)
 
     # Andrii
     evening_rides_with_high_total_amount_count = fda.count_evening_rides_with_high_total_amount(fare_data_df)
