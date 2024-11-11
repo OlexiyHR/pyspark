@@ -16,7 +16,7 @@ Below is a list of 20 business questions that we would like to answer when worki
 6. Which NYC borough has the biggest traffic?
 7. Does the tip amount depend on the pickup / dropoff borough?
 8. How does the tipping amount depend on the payment type? (Hromiak)
-9. How does the tipping amount depend on the distance / duration / time of the day? (Mykytyshyn)
+9. How does the tipping amount depend on the distance / duration? (Mykytyshyn)
 10. Which rate codes are the most profitable?
 11. Which vendor has the highest fare? (Hromiak)
 12. How much MTA tax is paid by taxi operators each month? (Krasovskyy)
