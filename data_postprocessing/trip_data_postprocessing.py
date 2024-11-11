@@ -36,11 +36,10 @@ def transform_store_and_fwd_flag_to_bool(df, column_name=c.store_and_fwd_flag):
         ...     column_name=c.store_and_fwd_flag
         ... )
     """
-    return df.withColumn(
-        column_name,
-        f.when(f.col(column_name) == "Y", True)
-         .when(f.col(column_name) == "N", False)
-    )
+    result_df = df.withColumn(column_name,
+                              f.when(f.col(column_name) == "Y", True)
+                               .when(f.col(column_name) == "N", False))
+    return result_df
 
 
 def remove_invalid_rows(df, column_name=c.dropoff_longitude):
@@ -64,4 +63,5 @@ def remove_invalid_rows(df, column_name=c.dropoff_longitude):
         ...     column_name=c.dropoff_longitude
         ... )
     """
-    return df.filter(f.col(column_name).isNotNull())
+    result_df = df.filter(f.col(column_name).isNotNull())
+    return result_df
