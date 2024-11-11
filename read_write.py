@@ -20,7 +20,7 @@ def get_result_directory_path_for_question(question_number: int, part: int = 0) 
 
 def setup_directories():
     for i in range(constants.TOTAL_QUESTIONS_COUNT):
-        result_path = get_result_directory_path_for_question(i)
+        result_path = get_result_directory_path_for_question(i+1)
         os.makedirs(result_path, exist_ok=True)
 
 

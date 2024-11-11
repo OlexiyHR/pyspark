@@ -1,16 +1,10 @@
-import os
-
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
 from basic_dfs import basic_df_Krasovskyy as basic_df_k
 from basic_dfs.basic_df_mykytyshyn import basic_test_df as basic_test_df_myk
 from basic_dfs.basic_df_Hromiak import basic_test_df as basic_test_df_Hromiak
-from read_write import (read_fare_data_df,
-                        write_fare_data_df_to_csv,
-                        read_trip_data_df,
-                        write_trip_data_df_to_csv,
-                        setup_directories, write_question_results)
+import read_write as rw
 from data_postprocessing import fare_data_postprocessing as fare_proc, trip_data_postprocessing as trip_proc
 from data_cleaning.remove_duplicates import remove_duplicates
 from data_cleaning.clean_trip_data import fill_null_trip_data
@@ -34,6 +28,30 @@ def create_spark_session():
     return spark
 
 
+def helper_dataframes(spark_session: SparkSession):
+    """
+    Return DataFrames for month names and day names to be used in PySpark transformations.
+
+    Args:
+        spark_session (SparkSession): PySpark session.
+
+    Returns:
+        Tuple[DataFrame, DataFrame]: DataFrames for month names and day names.
+
+    Examples:
+        month_names_df, day_names_df = broadcast_setup(spark_session)
+    """
+    month_names = [(1, "January"), (2, "February"), (3, "March"), (4, "April"), (5, "May"), (6, "June"),
+                   (7, "July"), (8, "August"), (9, "September"), (10, "October"), (11, "November"), (12, "December")]
+    day_names = [(1, "Sunday"), (2, "Monday"), (3, "Tuesday"), (4, "Wednesday"), (5, "Thursday"), (6, "Friday"),
+                 (7, "Saturday")]
+
+    month_names_df = spark_session.createDataFrame(month_names, ["month", "month_name"])
+    day_names_df = spark_session.createDataFrame(day_names, ["day_of_week", "day_name"])
+
+    return month_names_df, day_names_df
+
+
 def display_demo_dataframe_mykytyshyn(spark_session):
     df = basic_test_df_myk(spark_session)
     df.show()
@@ -51,11 +69,13 @@ def display_demo_dataframe_hromiak(spark_session):
 def main():
     spark_session = create_spark_session()
 
+    month_names_broadcast, day_names_broadcast = helper_dataframes(spark_session)
+
     display_demo_dataframe_krasovskyy(spark_session)
     display_demo_dataframe_mykytyshyn(spark_session)
     display_demo_dataframe_hromiak(spark_session)
 
-    fare_data_df = read_fare_data_df(
+    fare_data_df = rw.read_fare_data_df(
         spark_session=spark_session,
         dataframe_path=s.TRIP_FARE_READ_DIRECTORY_PATH,
         header=True,
@@ -85,7 +105,7 @@ def main():
     for column in total_fare_num_columns:
         fare_data_df = fare_proc.remove_outliers_iqr_in_col(df=fare_data_df, column=column, multiplier=10)
 
-    write_fare_data_df_to_csv(
+    rw.write_fare_data_df_to_csv(
         df=fare_data_df,
         write_folder_path=s.TRIP_FARE_WRITE_DIRECTORY_PATH,
         num_files=s.WRITE_PARTITION,
@@ -93,7 +113,7 @@ def main():
         sep=","
     )
 
-    trip_data_df = read_trip_data_df(
+    trip_data_df = rw.read_trip_data_df(
         spark_session=spark_session,
         dataframe_path=s.TRIP_DATA_READ_DIRECTORY_PATH,
         header=False,
@@ -111,7 +131,7 @@ def main():
 
     trip_data_df = trip_proc.transform_store_and_fwd_flag_to_bool(trip_data_df)
 
-    write_trip_data_df_to_csv(
+    rw.write_trip_data_df_to_csv(
         df=trip_data_df,
         write_folder_path=s.TRIP_DATA_WRITE_DIRECTORY_PATH,
         num_files=s.WRITE_PARTITION,
@@ -119,99 +139,107 @@ def main():
         sep=","
     )
 
-    setup_directories()
+    rw.setup_directories()
 
     # Artem
     tip_distance_correlation = ada.column_tip_correlation(trip_data_df, fare_data_df, column_name=c.trip_distance)
     tip_duration_correlation = ada.column_tip_correlation(trip_data_df, fare_data_df, column_name=c.trip_time_in_secs)
-    write_question_results(tip_distance_correlation, 9, part=1)
-    write_question_results(tip_duration_correlation, 9, part=2)
+    rw.write_question_results(tip_distance_correlation, 9, part=1)
+    rw.write_question_results(tip_duration_correlation, 9, part=2)
 
     passenger_count_distribution = tda.passenger_count_distribution(trip_data_df)
-    write_question_results(passenger_count_distribution, 14)
+    rw.write_question_results(passenger_count_distribution, 14)
 
     short_trip_distribution_by_day_ranked = tda.short_trip_distribution_by_day_ranked(trip_data_df)
     write_question_results(short_trip_distribution_by_day_ranked, 18)
 
     vendor_trip_counts_distribution = tda.trip_amounts_distribution_by_vendor(trip_data_df)
-    write_question_results(vendor_trip_counts_distribution, 19)
+    rw.write_question_results(vendor_trip_counts_distribution, 19)
 
     average_trip_speeds_by_month = tda.average_trip_speed_by_month(trip_data_df)
-    write_question_results(average_trip_speeds_by_month, 20)
+    rw.write_question_results(average_trip_speeds_by_month, 20)
 
     short_trips_count = tda.count_short_trips(trip_data_df)
-    write_question_results(short_trips_count, 24)
+    rw.write_question_results(short_trips_count, 24)
 
     large_group_trips_count = tda.count_large_group_trips(trip_data_df)
-    write_question_results(large_group_trips_count, 25)
+    rw.write_question_results(large_group_trips_count, 25)
 
     average_trip_price_paid_with_card = fda.average_card_payment_total(fare_data_df)
-    write_question_results(average_trip_price_paid_with_card, 26)
+    rw.write_question_results(average_trip_price_paid_with_card, 26)
 
     top_10_drivers_by_distance_per_month = tda.top_10_drivers_by_distance_per_month(trip_data_df)
-    write_question_results(top_10_drivers_by_distance_per_month, 34)
+    rw.write_question_results(top_10_drivers_by_distance_per_month, 34)
 
     missing_or_incorrect_fare_data_count = ada.count_trips_missing_fare(trip_data_df, fare_data_df)
-    write_question_results(missing_or_incorrect_fare_data_count, 35)
+    rw.write_question_results(missing_or_incorrect_fare_data_count, 35)
 
     # Andrii
     evening_rides_with_high_total_amount_count = fda.count_evening_rides_with_high_total_amount(fare_data_df)
-    write_question_results(evening_rides_with_high_total_amount_count, 21)
+    rw.write_question_results(evening_rides_with_high_total_amount_count, 21)
 
     cash_tips_above_average_count = fda.count_cash_tips_above_average(fare_data_df)
-    write_question_results(cash_tips_above_average_count, 22)
+    rw.write_question_results(cash_tips_above_average_count, 22)
 
     weekday_credit_card_trips_with_high_tips = fda.filter_weekday_credit_card_trips_with_high_tips(fare_data_df)
-    write_question_results(weekday_credit_card_trips_with_high_tips, 23)
+    rw.write_question_results(weekday_credit_card_trips_with_high_tips, 23)
 
     top_10_by_trips_df, top_10_by_trip_income_df, top_10_by_tips_df = fda.top_10_successful_drivers(fare_data_df)
-    write_question_results(top_10_by_trips_df, 1, part=1)
-    write_question_results(top_10_by_trip_income_df, 1, part=2)
-    write_question_results(top_10_by_tips_df, 1, part=3)
+    rw.write_question_results(top_10_by_trips_df, 1, part=1)
+    rw.write_question_results(top_10_by_trip_income_df, 1, part=2)
+    rw.write_question_results(top_10_by_tips_df, 1, part=3)
 
-    month_profit_df, day_of_week_profit_df = fda.most_profitable_months_and_days(fare_data_df)
-    write_question_results(month_profit_df, 2, part=1)
-    write_question_results(day_of_week_profit_df, 2, part=2)
+    month_profit_df, day_of_week_profit_df = fda.most_profitable_months_and_days(fare_data_df, month_names_broadcast, day_names_broadcast)
+    rw.write_question_results(month_profit_df, 2, part=1)
+    rw.write_question_results(day_of_week_profit_df, 2, part=2)
 
     mta_taxes_df = fda.monthly_mta_tax_by_vendor(fare_data_df)
-    write_question_results(mta_taxes_df, 12)
+    rw.write_question_results(mta_taxes_df, 12)
 
     top_10_drivers_df = tda.top_10_drivers_by_between_ride_distance(trip_data_df)
-    write_question_results(top_10_drivers_df, 30)
+    rw.write_question_results(top_10_drivers_df, 30)
 
     ranked_trip_counts_df = tda.get_driver_peak_load_days_in_december(trip_data_df)
-    write_question_results(ranked_trip_counts_df, 33)
+    rw.write_question_results(ranked_trip_counts_df, 33)
+
+    most_profitable_rate_codes_df = fda.get_most_profitable_rate_codes(trip_data_df=trip_data_df,
+                                                                       fare_data_df=fare_data_df)
+    rw.write_question_results(most_profitable_rate_codes_df, 10)
+
+    rate_codes_with_tolls_percentage_df = fda.get_rate_codes_with_tolls_percentage(trip_data_df=trip_data_df,
+                                                                                   fare_data_df=fare_data_df)
+    rw.write_question_results(rate_codes_with_tolls_percentage_df, 36)
 
     # Oleksii
     expensive_trips = fda.count_expensive_trips(fare_data_df)
-    write_question_results(expensive_trips, 27)
+    rw.write_question_results(expensive_trips, 27)
 
     medium_duration_trips = tda.count_medium_duration_trips(trip_data_df)
-    write_question_results(medium_duration_trips, 28)
+    rw.write_question_results(medium_duration_trips, 28)
 
     jfk_airport_trips_with_four_passengers = tda.jfk_airport_trips_with_four_passengers(trip_data_df)
-    write_question_results(jfk_airport_trips_with_four_passengers, 29)
+    rw.write_question_results(jfk_airport_trips_with_four_passengers, 29)
 
     average_tip_by_payment_type = fda.average_tip_by_payment_type(fare_data_df)
-    write_question_results(average_tip_by_payment_type, 8)
+    rw.write_question_results(average_tip_by_payment_type, 8)
 
     vendor_with_highest_fare = fda.vendor_with_highest_fare(fare_data_df)
-    write_question_results(vendor_with_highest_fare, 11)
+    rw.write_question_results(vendor_with_highest_fare, 11)
 
     passenger_count_by_time_of_day = tda.passenger_count_by_time_of_day(trip_data_df)
-    write_question_results(passenger_count_by_time_of_day, 16)
+    rw.write_question_results(passenger_count_by_time_of_day, 16)
 
     cumulative_total_fare_on_july_4 = fda.cumulative_total_fare_on_july_4(fare_data_df)
-    write_question_results(cumulative_total_fare_on_july_4, 31)
+    rw.write_question_results(cumulative_total_fare_on_july_4, 31)
 
     top_5_drivers_by_trip_count_on_july_4 = fda.top_5_drivers_by_trip_count_on_july_4(fare_data_df)
-    write_question_results(top_5_drivers_by_trip_count_on_july_4, 32)
+    rw.write_question_results(top_5_drivers_by_trip_count_on_july_4, 32)
 
     passenger_count_vs_trip_price = ada.passenger_count_vs_trip_price(trip_data_df, fare_data_df)
-    write_question_results(passenger_count_vs_trip_price, 15)
+    rw.write_question_results(passenger_count_vs_trip_price, 15)
 
     most_popular_rate_code_by_payment_type = ada.most_popular_rate_code_by_payment_type(trip_data_df, fare_data_df)
-    write_question_results(most_popular_rate_code_by_payment_type, 37)
+    rw.write_question_results(most_popular_rate_code_by_payment_type, 37)
 
     spark_session.stop()
 

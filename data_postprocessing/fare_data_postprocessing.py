@@ -116,6 +116,9 @@ def remove_outliers_iqr_in_col(df, column, multiplier=2.22):
         ...     multiplier=2.22
         ... )
     """
+    if df.isEmpty():
+        return df
+
     q1 = df.approxQuantile(column, [0.25], 0.01)[0]
     q3 = df.approxQuantile(column, [0.75], 0.01)[0]
     iqr = q3 - q1
