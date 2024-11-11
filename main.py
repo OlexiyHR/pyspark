@@ -43,7 +43,7 @@ def display_demo_dataframe_krasovskyy(spark_session):
     basic_df_k.basic_test_df(spark_session=spark_session).show()
 
 
-def display_demo_dataframe_Hromiak(spark_session):
+def display_demo_dataframe_hromiak(spark_session):
     df = basic_test_df_Hromiak(spark_session)
     df.show()
 
@@ -53,7 +53,7 @@ def main():
 
     display_demo_dataframe_krasovskyy(spark_session)
     display_demo_dataframe_mykytyshyn(spark_session)
-    display_demo_dataframe_Hromiak(spark_session)
+    display_demo_dataframe_hromiak(spark_session)
 
     fare_data_df = read_fare_data_df(
         spark_session=spark_session,
@@ -206,6 +206,12 @@ def main():
 
     top_5_drivers_by_trip_count_on_july_4 = fda.top_5_drivers_by_trip_count_on_july_4(fare_data_df)
     write_question_results(top_5_drivers_by_trip_count_on_july_4, 32)
+
+    passenger_count_vs_trip_price = ada.passenger_count_vs_trip_price(trip_data_df, fare_data_df)
+    write_question_results(passenger_count_vs_trip_price, 15)
+
+    most_popular_rate_code_by_payment_type = ada.most_popular_rate_code_by_payment_type(trip_data_df, fare_data_df)
+    write_question_results(most_popular_rate_code_by_payment_type, 37)
 
     spark_session.stop()
 
