@@ -30,7 +30,7 @@ Below is a list of 20 business questions that we would like to answer when worki
 20. What is the average trip speed in each of the months? (Mykytyshyn)
 21. How many trips took place in evening time (between 18:00 and 23:59) and had total_amount above the average? (Krasovskyy)
 22. How many trips were paid with cash and had tips_amount above the average value? (Krasovskyy)
-23. Retrieve trips that were paid with credit card and have tip amount greater than fare amount. (Krasovskyy)
+23. Retrieve weekday trips that were paid with credit card and have tip amount greater than fare amount. (Krasovskyy)
 24. How many trips were shorter than 1 mile? (Mykytyshyn)
 25. How many trips had at least 6 passengers? (Mykytyshyn)
 26. What is the average total price of trips paid for with a card? (Mykytyshyn)
