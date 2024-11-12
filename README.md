@@ -17,7 +17,7 @@ Below is a list of 20 business questions that we would like to answer when worki
 7. Does the tip amount depend on the pickup / dropoff borough?
 8. How does the tipping amount depend on the payment type? (Hromiak)
 9. How does the tipping amount depend on the distance / duration? (Mykytyshyn)
-10. Which rate codes are the most profitable?
+10. Which rate codes are the most profitable? (Krasovskyy)
 11. Which vendor has the highest fare? (Hromiak)
 12. How much MTA tax is paid by taxi operators each month? (Krasovskyy)
 13. Does payment type depend on the total payment amount? (i.e. are people more inclined to pay with card when the price is higher?)
@@ -43,5 +43,5 @@ Below is a list of 20 business questions that we would like to answer when worki
 33. Peak load hours for each driver during December? (Krasovskyy)
 34. Top 10 drivers for each month by total trip distance? (Mykytyshyn)
 35. How many trips have missing or incorrect fare information? (Mykytyshyn)
-
+36. How often (in percents) rate codes for trips had tolls (tolls_amount > 0)? (Krasovskyy)
 37. What is the most popular rate code for each payment type? (Hromiak)

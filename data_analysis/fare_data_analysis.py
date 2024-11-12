@@ -5,7 +5,6 @@ Module for functions that implement analysis of trip fare data.
 
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as f
-import pyspark.sql.types as t
 from pyspark.sql.window import Window
 
 import columns as c
@@ -187,7 +186,7 @@ def top_10_successful_drivers(df):
     return top_10_by_trips, top_10_by_trip_income, top_10_by_tips
 
 
-def most_profitable_months_and_days(df):
+def most_profitable_months_and_days(df, month_names_df, day_names_df):
     """
     Calculate the most profitable months and days of the week by total trip income.
 
@@ -196,12 +195,14 @@ def most_profitable_months_and_days(df):
 
     Args:
         df (DataFrame): Fare data DataFrame to process.
+        month_names_df (DataFrame): DataFrame for month names.
+        day_names_df (DataFrame): DataFrame for day names.
 
     Returns:
         Tuple[DataFrame, DataFrame]: DataFrames with trip costs for every month and day of the week.
 
     Examples:
-        >>> month_profit_df, day_of_week_profit_df = most_profitable_months_and_days(df)
+        >>> month_profit_df, day_of_week_profit_df = most_profitable_months_and_days(df, month_names_df, day_names_df)
     """
     month_col = "month"
     day_of_week_col = "day_of_week"
@@ -215,17 +216,13 @@ def most_profitable_months_and_days(df):
         .withColumn(day_of_week_col, f.dayofweek(c.pickup_datetime))
     )
 
-    month_names = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June", 7: "July",
-                   8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
-    day_names = {1: "Sunday", 2: "Monday", 3: "Tuesday", 4: "Wednesday", 5: "Thursday", 6: "Friday", 7: "Saturday"}
-
-    month_name_udf = f.udf(lambda m: month_names.get(m, "Unknown"), t.StringType())
-    day_name_udf = f.udf(lambda d: day_names.get(d, "Unknown"), t.StringType())
+    month_join_condition = (df[month_col] == month_names_df[month_col])
+    day_join_condition = (df[day_of_week_col] == day_names_df[day_of_week_col])
 
     df = (
         df
-        .withColumn(month_name_col, month_name_udf(f.col(month_col)))
-        .withColumn(day_name_col, day_name_udf(f.col(day_of_week_col)))
+        .join(month_names_df, on=month_join_condition, how="left")
+        .join(day_names_df, on=day_join_condition, how="left")
     )
 
     month_profit = (
@@ -364,3 +361,101 @@ def top_5_drivers_by_trip_count_on_july_4(df: DataFrame) -> DataFrame:
     ranked_data = aggregated_data.withColumn("rank", f.row_number().over(window_spec))
     result_df = ranked_data.filter(f.col("rank") <= 5)
     return result_df
+
+
+def get_most_profitable_rate_codes(trip_data_df: DataFrame, fare_data_df: DataFrame) -> DataFrame:
+    """
+    Get most profitable rate codes by calculating total revenue for each code.
+
+    Notes:
+        Question 10.
+
+    Args:
+        trip_data_df (DataFrame): Trip data DataFrame for processing.
+        fare_data_df (DataFrame): Fare data DataFrame for processing.
+
+    Returns:
+        DataFrame: DataFrame containing rate codes with the highest total revenue ordered by total revenue
+                   in descending order.
+
+    Examples:
+        >>> most_profitable_rate_codes_df = get_most_profitable_rate_codes(trip_data_df, fare_data_df)
+    """
+    total_revenue_col = "total_revenue"
+
+    join_condition = (
+        (trip_data_df[c.medallion] == fare_data_df[c.medallion])
+        & (trip_data_df[c.hack_license] == fare_data_df[c.hack_license])
+        & (trip_data_df[c.pickup_datetime] == fare_data_df[c.pickup_datetime])
+    )
+
+    trip_fare_data = trip_data_df.join(
+        fare_data_df,
+        on=join_condition,
+        how='inner'
+    )
+
+    profit_from_rate_codes = (
+        trip_fare_data
+        .groupBy(trip_fare_data[c.rate_code])
+        .agg(f.sum(fare_data_df[c.total_amount]).alias(total_revenue_col))
+        .orderBy(f.desc(total_revenue_col))
+    )
+
+    return profit_from_rate_codes
+
+
+def get_rate_codes_with_tolls_percentage(trip_data_df: DataFrame, fare_data_df: DataFrame) -> DataFrame:
+    """
+    Get the rate codes for trips and calculate the percentage of trips that had tolls (tolls_amount > 0).
+    
+    Notes:
+        Question 36.
+
+    Args:
+        trip_data_df (DataFrame): Trip data DataFrame for processing.
+        fare_data_df (DataFrame): Fare data DataFrame for processing.
+
+    Returns:
+        DataFrame: DataFrame containing rate codes and the percentage of trips with tolls,
+                   ordered by the percentage of tolls in descending order.
+
+    Examples:
+        >>> rate_codes_with_tolls_percentage_df = get_rate_codes_with_tolls_percentage(trip_data_df, fare_data_df)
+    """
+    total_trips_col = "total_trips"
+    tolls_count_col = "tolls_count"
+    tolls_percent_col = "tolls_percent"
+
+    join_condition = (
+            (trip_data_df[c.medallion] == fare_data_df[c.medallion])
+            & (trip_data_df[c.hack_license] == fare_data_df[c.hack_license])
+            & (trip_data_df[c.pickup_datetime] == fare_data_df[c.pickup_datetime])
+    )
+
+    trip_fare_data = trip_data_df.join(
+        fare_data_df,
+        on=join_condition,
+        how='left'
+    )
+
+    rate_codes_with_counts = (
+        trip_fare_data
+        .groupBy(trip_fare_data[c.rate_code])
+        .agg(
+            f.count("*").alias(total_trips_col),
+            f.count(f.when(f.col(c.tolls_amount) > 0, 1)).alias(tolls_count_col)
+        )
+    )
+
+    rate_codes_with_counts = (
+        rate_codes_with_counts
+        .withColumn(
+            tolls_percent_col,
+            f.when(f.col(total_trips_col) == 0, 0)
+            .otherwise(f.col(tolls_count_col) / f.col(total_trips_col) * 100)
+        )
+        .orderBy(f.desc(tolls_percent_col))
+    )
+
+    return rate_codes_with_counts
