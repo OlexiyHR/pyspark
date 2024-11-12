@@ -124,7 +124,7 @@ def count_expensive_trips(df: DataFrame) -> int:
         int: The number of trips with a total fare greater than 50 dollars.
 
     Examples:
-        >>> expensive_trips_count = count_expensive_trips(fare_data_df)
+        >>> expensive_trips_count = count_expensive_trips(df)
     """
     count_expensive = df.where(f.col(c.total_amount) >= 50).count()
     return count_expensive
@@ -286,7 +286,7 @@ def average_tip_by_payment_type(df: DataFrame) -> DataFrame:
         DataFrame: A new DataFrame with each payment type and the average tip amount.
 
     Examples:
-        >>> avg_tips_by_payment = average_tip_by_payment_type(fare_data_df)
+        >>> avg_tips_by_payment = average_tip_by_payment_type(df)
     """
     result_df = df.groupBy(c.payment_type).agg(f.avg(c.tip_amount).alias("average_tip"))
     return result_df
@@ -304,7 +304,7 @@ def vendor_with_highest_fare(df: DataFrame) -> DataFrame:
             DataFrame: A new DataFrame with vendor IDs and their total fare amounts, sorted in descending order.
 
     Examples:
-        >>> top_vendor = vendor_with_highest_fare(fare_data_df)
+        >>> top_vendor = vendor_with_highest_fare(df)
     """
     result_df = (df.groupBy(c.vendor_id)
                    .agg(f.sum(c.fare_amount).alias("total_fare"))
@@ -323,11 +323,11 @@ def cumulative_total_fare_on_july_4(df: DataFrame) -> DataFrame:
         DataFrame: A new DataFrame with each driver's cumulative total fare on July 4.
 
     Examples:
-        >>> cumulative_fares = cumulative_total_fare_on_july_4(fare_data_df)
+        >>> cumulative_fares = cumulative_total_fare_on_july_4(df)
     """
     july_4_data = df.filter(
-        (f.col(c.pickup_datetime) >= "2023-07-04 00:00:00") &
-        (f.col(c.pickup_datetime) <= "2023-07-04 23:59:59")
+        (f.month(f.col("pickup_datetime")) == 7) &
+        (f.dayofmonth(f.col("pickup_datetime")) == 4)
     )
 
     window_spec = Window.partitionBy(c.hack_license).orderBy(c.pickup_datetime)
@@ -347,11 +347,11 @@ def top_5_drivers_by_trip_count_on_july_4(df: DataFrame) -> DataFrame:
              DataFrame: A new DataFrame with the top 5 drivers by trip count and total fare on July 4.
 
         Examples:
-            >>> top_drivers = top_5_drivers_by_trip_count_on_july_4(fare_data_df)
+            >>> top_drivers = top_5_drivers_by_trip_count_on_july_4(df)
     """
     july_4_data = df.filter(
-        (f.col(c.pickup_datetime) >= "2023-07-04 00:00:00") &
-        (f.col(c.pickup_datetime) <= "2023-07-04 23:59:59")
+        (f.month(f.col("pickup_datetime")) == 7) &
+        (f.dayofmonth(f.col("pickup_datetime")) == 4)
     )
 
     aggregated_data = july_4_data.groupBy(c.hack_license).agg(
@@ -362,6 +362,5 @@ def top_5_drivers_by_trip_count_on_july_4(df: DataFrame) -> DataFrame:
     window_spec = Window.orderBy(f.col("trip_count").desc(), f.col("total_fare").desc())
 
     ranked_data = aggregated_data.withColumn("rank", f.row_number().over(window_spec))
-
     result_df = ranked_data.filter(f.col("rank") <= 5)
     return result_df

@@ -50,7 +50,7 @@ def count_medium_duration_trips(df: DataFrame) -> int:
         int: The number of trips with a duration between 30 minutes (1800 seconds) and 1 hour (3600 seconds).
 
     Examples:
-        >>> medium_duration_trips_count = count_medium_duration_trips(trip_data_df)
+        >>> medium_duration_trips_count = count_medium_duration_trips(df)
     """
     count_medium = df.where((f.col(c.trip_time_in_secs) >= 1800)
                            & (f.col(c.trip_time_in_secs) <= 3600)).count()
@@ -69,7 +69,7 @@ def jfk_airport_trips_with_four_passengers(df: DataFrame) -> DataFrame:
          DataFrame: A new DataFrame containing only trips with 4 passengers and the JFK Airport rate code.
 
     Examples:
-        >>> jfk_trips_with_four_passengers = jfk_airport_trips_with_four_passengers(trip_data_df)
+        >>> jfk_trips_with_four_passengers = jfk_airport_trips_with_four_passengers(df)
     """
     filtered_df = df.filter((f.col(c.passenger_count) == 4) & (f.col(c.rate_code) == 2))
 
@@ -339,7 +339,7 @@ def passenger_count_by_time_of_day(df: DataFrame) -> DataFrame:
         DataFrame: A new DataFrame with time of day intervals and the average passenger count.
 
     Examples:
-        >>> avg_passenger_count = passenger_count_by_time_of_day(trip_data_df)
+        >>> avg_passenger_count = passenger_count_by_time_of_day(df)
     """
     df_with_time_of_day = df.withColumn(
         "hour_of_day", f.hour(c.pickup_datetime)
@@ -352,6 +352,6 @@ def passenger_count_by_time_of_day(df: DataFrame) -> DataFrame:
     ).drop("hour_of_day")
 
     result_df = (df_with_time_of_day.groupBy("time_of_day")
-                                    .agg(f.avg(c.pickup_datetime).alias("average_passenger_count"))
+                                    .agg(f.avg(c.passenger_count).alias("average_passenger_count"))
                                     .orderBy("time_of_day"))
     return result_df
