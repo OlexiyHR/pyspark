@@ -132,7 +132,7 @@ def top_10_drivers_by_between_ride_distance(df):
         double_earth_radius_km_col
         * f.asin(
             f.sqrt(
-                pow(
+                f.pow(
                     f.sin(
                         (f.col(pickup_latitude_rad_name) - f.col(prev_dropoff_latitude_rad_name)) / 2
                     ),
@@ -140,7 +140,7 @@ def top_10_drivers_by_between_ride_distance(df):
                 )
                 + f.cos(f.col(pickup_latitude_rad_name))
                 * f.cos(f.col(prev_dropoff_latitude_rad_name))
-                * pow(
+                * f.pow(
                     f.sin(
                         (f.col(pickup_longitude_rad_name) - f.col(prev_dropoff_longitude_rad_name)) / 2
                     ),
@@ -153,7 +153,7 @@ def top_10_drivers_by_between_ride_distance(df):
     drivers_with_total_inter_ride_distance = (
         df_with_haversine_distance
         .groupBy(c.medallion, c.hack_license)
-        .agg(sum(inter_ride_distance_name)
+        .agg(f.sum(inter_ride_distance_name)
         .alias(total_inter_ride_distance_name))
     )
 
@@ -315,7 +315,7 @@ def top_10_drivers_by_distance_per_month(df: DataFrame) -> DataFrame:
     monthly_driver_distances = (
         df.withColumn(month_column_name, f.month(c.pickup_datetime))
           .groupBy(month_column_name, c.hack_license)
-          .agg(sum(c.trip_distance).alias(total_distance_column_name))
+          .agg(f.sum(c.trip_distance).alias(total_distance_column_name))
     )
 
     window_spec = Window.partitionBy(month_column_name).orderBy(f.col(total_distance_column_name).desc())
