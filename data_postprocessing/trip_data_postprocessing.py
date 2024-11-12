@@ -67,7 +67,7 @@ def remove_invalid_rows(df, column_name=c.dropoff_longitude):
     return result_df
 
 
-def remove_invalid__rate_code(df, column_name='rate_code'):
+def remove_invalid_rate_code(df, column_name='rate_code'):
     """
     Remove rows where the column 'rate_code' has invalid values (greater than 6).
 
@@ -82,7 +82,7 @@ def remove_invalid__rate_code(df, column_name='rate_code'):
         DataFrame: New Spark DataFrame without invalid rows.
 
     Examples:
-        >>> trip_data_df = remove_invalid_rows_by_rate_code(
+        >>> trip_data_df = remove_invalid_rate_code(
         ...     df=trip_data_df,
         ...     column_name='rate_code'
         ... )
