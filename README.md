@@ -40,7 +40,7 @@ Below is a list of 20 business questions that we would like to answer when worki
 30. Which 10 taxi drivers have the biggest total distance driven between taxi rides (from previous drop off location to current start location)? (Krasovskyy)
 31. What is the cumulative total_fare sum for each driver during 4th of July? (Hromiak)
 32. Top 5 drivers by the count of trips by 4th of July (sorted primarily by trip count and secondarily by total fare amount in descending order in cases of ties) (Hromiak)
-33. Peak load hours for each driver during December? (Krasovskyy)
+33. Peak load days for each driver during December? (Krasovskyy)
 34. Top 10 drivers for each month by total trip distance? (Mykytyshyn)
 35. How many trips have missing or incorrect fare information? (Mykytyshyn)
 36. How often (in percents) rate codes for trips had tolls (tolls_amount > 0)? (Krasovskyy)
