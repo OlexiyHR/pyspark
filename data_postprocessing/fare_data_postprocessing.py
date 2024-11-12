@@ -29,10 +29,10 @@ def replace_unknown_values_with_null(df, column_name, unknown_value="UNK"):
         ...     unknown_value= "UNK"
         ... )
     """
-    return df.withColumn(
-        column_name,
-        f.when(f.col(column_name) == unknown_value, None).otherwise(f.col(column_name))
-    )
+    df = df.withColumn(column_name,
+                       f.when(f.col(column_name) == unknown_value, None).otherwise(f.col(column_name))
+                      )
+    return df
 
 
 def filter_negative_values(df, column):
@@ -52,7 +52,8 @@ def filter_negative_values(df, column):
         ...     column="fare_amount"
         ... )
     """
-    return df.filter(f.col(column) >= 0)
+    df = df.filter(f.col(column) >= 0)
+    return df
 
 
 def filter_zero_fare_rows(df):
@@ -73,7 +74,8 @@ def filter_zero_fare_rows(df):
     Examples:
         >>> fare_data_df = filter_zero_fare_rows(fare_data_df)
     """
-    return df.filter((f.col(c.fare_amount) != 0.0) | (f.col(c.total_amount) != 0.0))
+    df = df.filter((f.col(c.fare_amount) != 0.0) | (f.col(c.total_amount) != 0.0))
+    return df
 
 
 def filter_invalid_mta_tax(df):
@@ -94,7 +96,8 @@ def filter_invalid_mta_tax(df):
     Examples:
         >>> fare_data_df = filter_invalid_mta_tax(fare_data_df)
     """
-    return df.filter((f.col(c.mta_tax) == 0.0) | (f.col(c.mta_tax) == 0.5))
+    df = df.filter((f.col(c.mta_tax) == 0.0) | (f.col(c.mta_tax) == 0.5))
+    return df
 
 
 def remove_outliers_iqr_in_col(df, column, multiplier=2.22):
